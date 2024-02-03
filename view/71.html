@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑【NDK开发】NDK采集、压缩、加密传输设备信息 - Depy's docs</title><li><a href="/view/71.html">📑【NDK开发】NDK采集、压缩、加密传输设备信息</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑【NDK开发】NDK采集、压缩、加密传输设备信息</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,410 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:编程开发 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 任务描述
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+希望开发一个apk。通过各种系统api、各种依赖库api，拿到尽可能全面的设备信息、环境信息以及设备指纹。并且通过数据编码、数据加密后传回服务器，进行云端存储。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+## 任务分解
+
+信息采集：通过各类api获取数据，保存在变量池
+信息编码：使用protobuf对采集的数据进行压缩
+信息加密：通过自定义魔改的AES加密算法将数据流进行加密
+信息回传：通过请求发送加密后数据至服务器
+
+## 信息采集
+
+```cpp
+    std::string buildId = getSystemProperty("ro.build.id").c_str();  // 编译id
+    std::string model = getSystemProperty("ro.product.model").c_str();  //模型
+    std::string manufacturer = getSystemProperty("ro.product.manufacturer").c_str();
+    std::string brand = getSystemProperty("ro.product.brand").c_str();  //品牌
+    std::string product = getSystemProperty("ro.build.product").c_str();
+    std::string fingerprint = getSystemProperty("ro.build.fingerprint").c_str(); //指纹
+    std::string baseband = getSystemProperty("vendor.gsm.project.baseband").c_str();
+    std::string sdkversion = getSystemProperty("ro.build.version.sdk").c_str();
+```
+
+getSystemProperty函数定义如下，用于通过系统api获取系统属性：
+```cpp
+extern "C" {
+    std::string getSystemProperty(std::string key) {
+        char Property[100];
+        __system_property_get(key.c_str(), Property);
+        return Property;
+    }
+}
+```
+
+## 信息编码
+
+如何引入protobuf? 
+
+这里踩了一天的坑，网上都是cpp的高手，没人教cmake怎么用。
+
+首先根据自己电脑下载好一个可用的protoc可执行文件，编写person.proto规则文件
+
+```bash
+syntax = "proto3";
+
+message Person {
+  string name = 1;
+  int32 age = 2;
+  string email = 3;
+}
+```
+执行命令 生成所需用的cpp头文件，以及cc实现文件
+
+![](https://p0.meituan.net/xianfu/07554b5c73dc77af13ddd2d538851a4636195.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+### Android Studio编译protobuf
+
+下载官方源码，建议版本<=21，否则会出现某些类库丢失的问题，需要自己再编译。
+
+提取/src/google/protobuf 到如图所示目录
+
+![](https://p0.meituan.net/xianfu/9549ec7bdcc7cb554934c7a789152c6322474.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+新建一个CMakeLists.txt文件，内容如下：
+
+```
+# For more information about using CMake with Android Studio, read the
+# documentation: https://d.android.com/studio/projects/add-native-code.html
+
+# Sets the minimum version of CMake required to build the native library.
+
+cmake_minimum_required(VERSION 3.6.0)
+
+# Creates and names a library, sets it as either STATIC
+# or SHARED, and provides the relative paths to its source code.
+# You can define multiple libraries, and CMake builds them for you.
+# Gradle automatically packages shared libraries with your APK.
+
+set(DANDROID_STL c++_static)
+set(DCMAKE_BUILD_TYPE Release)
+
+#add_definitions("-DDEBUG")
+add_definitions("-DHAVE_PTHREAD")
+
+include_directories(.)
+
+set(libprotobuf_files
+            google/protobuf/any.cc
+            google/protobuf/any.pb.cc
+            google/protobuf/api.pb.cc
+            google/protobuf/compiler/importer.cc
+            google/protobuf/compiler/parser.cc
+            google/protobuf/descriptor.cc
+            google/protobuf/descriptor.pb.cc
+            google/protobuf/descriptor_database.cc
+            google/protobuf/duration.pb.cc
+            google/protobuf/dynamic_message.cc
+            google/protobuf/empty.pb.cc
+            google/protobuf/extension_set_heavy.cc
+            google/protobuf/field_mask.pb.cc
+            google/protobuf/generated_message_bases.cc
+            google/protobuf/generated_message_reflection.cc
+            google/protobuf/generated_message_tctable_full.cc
+            google/protobuf/io/gzip_stream.cc
+            google/protobuf/io/printer.cc
+            google/protobuf/io/tokenizer.cc
+            google/protobuf/map_field.cc
+            google/protobuf/message.cc
+            google/protobuf/reflection_ops.cc
+            google/protobuf/service.cc
+            google/protobuf/source_context.pb.cc
+            google/protobuf/struct.pb.cc
+            google/protobuf/stubs/substitute.cc
+            google/protobuf/text_format.cc
+            google/protobuf/timestamp.pb.cc
+            google/protobuf/type.pb.cc
+            google/protobuf/unknown_field_set.cc
+            google/protobuf/util/delimited_message_util.cc
+            google/protobuf/util/field_comparator.cc
+            google/protobuf/util/field_mask_util.cc
+            google/protobuf/util/internal/datapiece.cc
+            google/protobuf/util/internal/default_value_objectwriter.cc
+            google/protobuf/util/internal/error_listener.cc
+            google/protobuf/util/internal/field_mask_utility.cc
+            google/protobuf/util/internal/json_escaping.cc
+            google/protobuf/util/internal/json_objectwriter.cc
+            google/protobuf/util/internal/json_stream_parser.cc
+            google/protobuf/util/internal/object_writer.cc
+            google/protobuf/util/internal/proto_writer.cc
+            google/protobuf/util/internal/protostream_objectsource.cc
+            google/protobuf/util/internal/protostream_objectwriter.cc
+            google/protobuf/util/internal/type_info.cc
+            google/protobuf/util/internal/utility.cc
+            google/protobuf/util/json_util.cc
+            google/protobuf/util/message_differencer.cc
+            google/protobuf/util/time_util.cc
+            google/protobuf/util/type_resolver_util.cc
+            google/protobuf/wire_format.cc
+            google/protobuf/wrappers.pb.cc
+            google/protobuf/any_lite.cc
+            google/protobuf/arena.cc
+            google/protobuf/arenastring.cc
+            google/protobuf/arenaz_sampler.cc
+            google/protobuf/extension_set.cc
+            google/protobuf/generated_enum_util.cc
+            google/protobuf/generated_message_tctable_lite.cc
+            google/protobuf/generated_message_util.cc
+            google/protobuf/implicit_weak_message.cc
+            google/protobuf/inlined_string_field.cc
+            google/protobuf/io/coded_stream.cc
+            google/protobuf/io/io_win32.cc
+            google/protobuf/io/strtod.cc
+            google/protobuf/io/zero_copy_stream.cc
+            google/protobuf/io/zero_copy_stream_impl.cc
+            google/protobuf/io/zero_copy_stream_impl_lite.cc
+            google/protobuf/map.cc
+            google/protobuf/message_lite.cc
+            google/protobuf/parse_context.cc
+            google/protobuf/repeated_field.cc
+            google/protobuf/repeated_ptr_field.cc
+            google/protobuf/stubs/bytestream.cc
+            google/protobuf/stubs/common.cc
+            google/protobuf/stubs/int128.cc
+            google/protobuf/stubs/status.cc
+            google/protobuf/stubs/statusor.cc
+            google/protobuf/stubs/stringpiece.cc
+            google/protobuf/stubs/stringprintf.cc
+            google/protobuf/stubs/structurally_valid.cc
+            google/protobuf/stubs/strutil.cc
+            google/protobuf/stubs/time.cc
+            google/protobuf/wire_format_lite.cc
+        )
+
+add_library( # Sets the name of the library.
+        protobuf
+
+        # Sets the library as a shared library.
+        STATIC
+
+        # Provides a relative path to your source file(s).
+        ${libprotobuf_files}
+
+        )
+
+
+find_library( # Sets the name of the path variable.
+        log-lib
+        #        log
+        zlib-lib
+        #        z
+        )
+
+# Specifies libraries CMake should link to your target library. You
+# can link multiple libraries, such as libraries you define in this
+# build script, prebuilt third-party libraries, or system libraries.
+
+target_link_libraries( # Specifies the target library.
+        protobuf
+
+        z
+        log
+        #        ${zlib-lib}
+        #        ${log-lib}
+        )
+
+set(ANDROID_NDK_REVISION 21)
+```
+
+![](https://p0.meituan.net/xianfu/39b14bc789a751ccf96dea18dd804436488476.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+编译后如果出现符号丢失的问题，肯定就是某个cc文件没有被编译导入。
+
+### 测试代码
+
+```cpp
+#include <jni.h>
+#include "native_depy.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <linux/android/binder.h>
+#include <android/log.h>
+#include "person.pb.h"
+#define TAG    "depy" // 这个是自定义的LOG的标识
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+
+#ifdef __cplusplus
+extern "C"
+#endif
+
+JNIEXPORT jstring JNICALL
+Java_com_example_a2023110803_MainActivity_get(JNIEnv *env, jobject thiz) {
+
+
+    Person person;
+    person.set_age(32);
+    person.set_email("admin@123.com");
+    person.set_name("uu");
+
+    std::string data;
+    person.SerializeToString(&data);
+
+    Person person2;
+    person2.ParseFromString(data);
+    LOGD("version %d\n",person2.email().c_str());
+
+    return env->NewStringUTF(person2.email().c_str());
+#ifdef __cplusplus
+}
+#endif
+```
+
+运行后手机上出现admin@123.com代表protobuf引入成功。
+
+### 使用logcat
+
+```
+#include <android/log.h>
+#define TAG    "depy" // 这个是自定义的LOG的标识
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+```
+
+![](https://p0.meituan.net/xianfu/0f682630629604694c262ad74b22632262372.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+进行cyberchef的解码，发现成功。
+
+![](https://p1.meituan.net/xianfu/07a5ce101ac1ba1a261ebef52b1240ec264810.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+## 信息加密
+
+### 引入openssl
+
+引入libcrypto.a 与libssl.a
+
+![](https://p1.meituan.net/xianfu/c0c97f94d5f0943b5cafe131b05dd7b740420.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+引入头文件
+
+![](https://p0.meituan.net/xianfu/d5c63103961a113c2b227d7a42ce00d07371.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/bbbf8c36c48a86c78fca37f9850cf32673297.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+编译提示没问题代表可以使用，可能会飘红，但会是缓存问题，重启一下android studio就行。
+
+### 使用evp.h进行aes加密
+
+evp.h已默认封装了一些方法，可以直接调用。默认的填充方式是pkcs#7。
+```cpp
+#include <jni.h>
+#include "native_depy.h"
+#include "device.pb.h"
+#include <android/log.h>
+#include <openssl/evp.h>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <vector>
+
+#define TAG   "depy" // 这个是自定义的LOG的标识
+#define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, TAG, __VA_ARGS__)
+
+
+std::string byteArrayToHexString(const std::vector<unsigned char>& byteArray) {
+    std::stringstream ss;
+    ss << std::hex << std::setfill('0');
+    for (size_t index = 0; index < byteArray.size(); ++index) {
+        ss << std::setw(2) << static_cast<unsigned int>(byteArray[index]);
+    }
+    return ss.str();
+}
+
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_a2023110803_MainActivity_get(JNIEnv *env, jobject thiz) {
+
+    //信息采集
+    std::string buildId = getSystemProperty("ro.build.id").c_str();  // 编译id
+    std::string model = getSystemProperty("ro.product.model").c_str();  //模型
+    std::string manufacturer = getSystemProperty("ro.product.manufacturer").c_str();
+    std::string brand = getSystemProperty("ro.product.brand").c_str();  //品牌
+    std::string product = getSystemProperty("ro.build.product").c_str();
+    std::string fingerprint = getSystemProperty("ro.build.fingerprint").c_str(); //指纹
+    std::string baseband = getSystemProperty("vendor.gsm.project.baseband").c_str();
+    std::string sdkversion = getSystemProperty("ro.build.version.sdk").c_str();
+
+    //protobuf 编码
+    device device_1;
+    device_1.set_fingerprint(fingerprint);
+    device_1.set_product(product);
+    device_1.set_manufacturer(manufacturer);
+    device_1.set_model(model);
+    device_1.set_baseband(baseband);
+    device_1.set_buildid(buildId);
+    device_1.set_sdkversion(sdkversion);
+    device_1.set_brand(brand);
+    std::string data;
+    device_1.SerializeToString(&data);
+    LOGD("data %s\n",hexString(data).c_str());
+
+    //aes-cbc加密
+    OpenSSL_add_all_algorithms();
+
+    // 创建并初始化 EVP_CIPHER_CTX 结构体
+    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
+    EVP_CIPHER_CTX_init(ctx);
+
+    unsigned char key[] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                           0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+                           0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+                           0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f};
+						   
+    unsigned char iv[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    assert(sizeof(key) == 32);  // AES256 key size
+    assert(sizeof(iv) == 16);   // IV is always the AES block size
+
+    std::string plain((data));
+    std::vector<unsigned char> encrypted;
+    size_t max_output_len = plain.length() + 16 - (plain.length() % 16);
+    encrypted.resize(max_output_len);
+
+    EVP_CipherInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, iv, 1);
+
+    int actual_size = 0;
+    EVP_CipherUpdate(ctx,
+                     &encrypted[0], &actual_size,
+                     reinterpret_cast<unsigned char *>(&plain[0]), plain.size());
+
+    int final_size;
+    EVP_CipherFinal_ex(ctx, &encrypted[actual_size], &final_size);
+    actual_size += final_size;
+
+    encrypted.resize(actual_size);
+
+    std::string hexString = byteArrayToHexString(encrypted);
+
+    EVP_CIPHER_CTX_cleanup(ctx);
+    LOGD("cryptodata %s\n",hexString.c_str());
+    return env->NewStringUTF(hexString.c_str());
+	
+}
+
+
+
+```
+
+![](https://p0.meituan.net/xianfu/805003a1f46366b590c48b7693cc1591331951.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+添加编译选项用于去除符号
+
+```
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
+```</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

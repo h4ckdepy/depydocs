@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>💼 Frida作业-20231114 - Depy's docs</title><li><a href="/view/73.html">💼 Frida作业-20231114</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>💼 Frida作业-20231114</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,397 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:逆向分析 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">##  Frida Work
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+1、system_property_get的输入和输出
+2、protobuf 序列化数据
+3、aes的输入（明文、key、iv） 可以尝试能不能看出是pkcs#7的填充和输出
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+样本下载：//待补充
+
+### 基础分析
+
+使用jadx逆向apk。
+
+![](https://p1.meituan.net/xianfu/4083b98b5b0db6402610c0b820e6339d122519.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+可以知道它调用un1ksec的lib库，定义了一个get的native方法。使用ida分析libun1ksec.so，搜索java_查找函数名，以确定是不是静态绑定。
+
+![](https://p0.meituan.net/xianfu/cdf85e310c525838627f12c73de28251204416.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+确实是静态绑定，直接按tab查看具体的代码逻辑。
+
+![](https://p0.meituan.net/xianfu/1e2ed7798bb16c38a825183bd7f5315f427031.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+可以发现它调用了很多次sub_310088的方法，与sub_131a58的方法。
+
+跟进sub_310388，判断可能是对字符串进行初始化或构造。
+
+![](https://p0.meituan.net/xianfu/5df44fbcc8398e5b552b56c4793a275274566.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+跟进sub_13158
+
+![](https://p0.meituan.net/xianfu/d269f2f5f7472d5722e0306875371e33137891.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+### Hook __system_property_get
+发现直接去调用了system_property_get函数，结合前面的入参，这两个函数大概是用来获取设备属性的。
+
+找到此函数的偏移地址，我找的是较底层的plt地址，由于frida Hook会破坏当前地址后的几条指令，如果函数代码量大可以等待frida修复后继续执行。但是这个函数太短了，如果hook函数开头会影响执行，所以选择0x694EFC作为我们的偏移。
+
+![](https://p0.meituan.net/xianfu/3559430bfdcce0c4b2db7e2d3b5fb6eb118115.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+```javascript
+function todoOndlopen(libraryName, fn) {
+    return new Promise((resolve, reject) => {
+        var exportName = Java.androidVersion >= 8.1 ? 'android_dlopen_ext' : 'dlopen';
+        var dlopen_ptr = Module.findExportByName(null, exportName);
+        if (dlopen_ptr) {
+            Interceptor.attach(dlopen_ptr, {
+                onEnter: function (args) {
+                    var libPath = args[0].readCString();
+                    if (libPath.indexOf(libraryName) !== -1) {
+                        console.log(`libraryPath: ${libPath}`);
+                        this.hook = true
+                    }
+                },
+                onLeave: function (retVal) {
+                    if (this.hook) {
+                        this.hook = false;
+                        console.log('hooking')
+                        resolve(fn());
+                    }
+                }
+            })
+        } else {
+            reject(exportName + ' not found')
+        }
+    })
+ }
+ 
+ 
+ 
+ function hook(){
+    const libraryName = 'libun1ksec.so';
+    return todoOndlopen(libraryName, ()=>{
+        const libraryName = 'libun1ksec.so';
+        let libso = Process.getModuleByName(libraryName);
+        var base_addr = Module.findBaseAddress(libraryName);
+	console.log(base_addr)
+        Interceptor.attach(base_addr.add(0x694EFC), {
+            onEnter: function(args) {
+                console.log(Memory.readCString(args[0]));
+            },
+        })
+ 
+    })
+ }
+ 
+ 
+ 
+ hook()
+
+```
+
+![](https://p1.meituan.net/xianfu/c8813cef8889873e6e5976e179ebe9b1155396.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+#### 返回值如何Hook？
+
+函数调用栈：
+
+0x30F550 -> 0x313A58 ->0x694EF0
+
+方法1:全局Hook __system_property_get，并打印堆栈。找到是由libun1ksec.so调用的，此时直接打印返回值即可。
+
+代码如下：
+
+```javascript
+function todoOndlopen(libraryName, fn) {
+    return new Promise((resolve, reject) => {
+        var exportName = Java.androidVersion >= 8.1 ? 'android_dlopen_ext' : 'dlopen';
+        var dlopen_ptr = Module.findExportByName(null, exportName);
+        if (dlopen_ptr) {
+            Interceptor.attach(dlopen_ptr, {
+                onEnter: function (args) {
+                    var libPath = args[0].readCString();
+                    if (libPath.indexOf(libraryName) !== -1) {
+                        console.log(`libraryPath: ${libPath}`);
+                        this.hook = true
+                    }
+                },
+                onLeave: function (retVal) {
+                    if (this.hook) {
+                        this.hook = false;
+                        console.log('hooking')
+                        resolve(fn());
+                    }
+                }
+            })
+        } else {
+            reject(exportName + ' not found')
+        }
+    })
+ }
+ 
+ 
+ 
+ function hook(){
+    const libraryName = 'libun1ksec.so';
+        return todoOndlopen(libraryName, ()=>{
+            const libraryName = 'libun1ksec.so';
+            let libso = Process.getModuleByName(libraryName);
+            let buffer = null;
+            var base_addr = Module.findBaseAddress(libraryName);
+
+
+            //int __system_property_get(const char *name, char *value)  参数1是属性名 参数2是buffer 返回值是属性值的字符串长度
+            Interceptor.attach(Module.findExportByName(null, "__system_property_get"),
+            {
+                onEnter: function (args) {
+                    this.flag = false
+                    let backtrace = Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n');
+                    if(backtrace.indexOf('un1ksec') != -1){
+                        this.flag = true;
+                        this.buffer = args[1]
+                        console.log("name:"+Memory.readCString(args[0]))
+                        console.log('RegisterNatives called from:\n' + Thread.backtrace(this.context, Backtracer.ACCURATE).map(DebugSymbol.fromAddress).join('\n') + '\n');
+                    }
+                },
+                onLeave: function (retval) {
+                    if(this.flag){
+                        this.flag = false;
+                        console.log("value:"+Memory.readCString(this.buffer))
+                        console.log("----------------------------")
+                    }
+
+                }
+            }
+
+
+        );
+    
+    })
+ }
+ 
+ 
+ 
+ hook()
+
+```
+![](https://p0.meituan.net/xianfu/f090c2c14509d9c05073301a291b8f281357258.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+方法2:汇编层面分析调用
+
+虽然我们能在0x694EFC处获取函数入，参但是我们没办法在此处获取返回值，原因同上。所以需要分析一下函数的调用与返回值传递过程：
+
+入参传递：
+层级1 -> 层级2 ->层级3
+返回值传递：
+层级3 ->层级2 -> 层级1
+
+查看此处的汇编代码：
+
+![](https://p0.meituan.net/xianfu/34e28587877c39b5eeb79c4f8ddd94cb243854.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+首先，将寄存器X1的值存储到栈中的某个位置，然后调用了一个获取系统属性的函数，最后将获取到的值加载到寄存器X1中。使用Frida直接Hook此时的寄存器的值。
+
+那么我们可以选择偏移为 0x313A94的时机去hook返回值，此时寄存器已被赋值。
+
+
+```javascript
+function todoOndlopen(libraryName, fn) {
+    return new Promise((resolve, reject) => {
+        var exportName = Java.androidVersion >= 8.1 ? 'android_dlopen_ext' : 'dlopen';
+        var dlopen_ptr = Module.findExportByName(null, exportName);
+        if (dlopen_ptr) {
+            Interceptor.attach(dlopen_ptr, {
+                onEnter: function (args) {
+                    var libPath = args[0].readCString();
+                    if (libPath.indexOf(libraryName) !== -1) {
+                        console.log(`libraryPath: ${libPath}`);
+                        this.hook = true
+                    }
+                },
+                onLeave: function (retVal) {
+                    if (this.hook) {
+                        this.hook = false;
+                        console.log('hooking')
+                        resolve(fn());
+                    }
+                }
+            })
+        } else {
+            reject(exportName + ' not found')
+        }
+    })
+ }
+ 
+ 
+ 
+ function hook(){
+    const libraryName = 'libun1ksec.so';
+    return todoOndlopen(libraryName, ()=>{
+        const libraryName = 'libun1ksec.so';
+        let libso = Process.getModuleByName(libraryName);
+        let buffer = null;
+        var base_addr = Module.findBaseAddress(libraryName);
+
+        Interceptor.attach(base_addr.add(0x313A94), {
+            onEnter: function(args) {
+                console.log(Memory.readCString(this.context.x1));
+            }
+
+        })
+ 
+    })
+ }
+ 
+ 
+ 
+ hook()
+
+```
+
+![](https://p1.meituan.net/xianfu/806d739a5e6f1491c11c40e5a984afa7190730.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+综上，记住lilac说的两个要点：
+
+* 不hook较短的函数
+* 初期尽量使用函数hook而不是inline hook
+
+### Hook protobuf 序列化数据
+
+![](https://p0.meituan.net/xianfu/8f4023fd9cbba42c5b088477cc821cb3278883.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+出现明显的标志google::protobuf::internal::ArenaStringPtr::Set，是protobuf进行结构体数据属性设置的地方。
+
+google::protobuf::MessageLite::SerializeToString(v64, v39); 是将数据进行序列化输出，我们可以观测一下它的返回值。此时查看此函数的返回值定义：
+
+![](https://p1.meituan.net/xianfu/89126b82aec9311e49463150c0d6eb1029203.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+是定义在参数中的std::string类型的指针，写了一篇文章关于此结构体的内存布局：https://docs.rce.ink/view/?view_id=74
+
+hook 一下
+![](https://p0.meituan.net/xianfu/da3b03b25fb4522d5b2c72f40b5daf56257825.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+```
+             0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F  0123456789ABCDEF
+7fe80b3280  c1 00 00 00 00 00 00 00 b0 00 00 00 00 00 00 00  ................
+7fe80b3290  80 e4 aa 12 74 00 00 b4
+
+```
+根据文章，第一个8字节第一位代表cap，第二个8字节第一位代表数据length，最后8字节代表data存储的地址。所以我们需要获取length和data地址，frida代码如下：
+
+```javascript
+function todoOndlopen(libraryName, fn) {
+    return new Promise((resolve, reject) => {
+        var exportName = Java.androidVersion >= 8.1 ? 'android_dlopen_ext' : 'dlopen';
+        var dlopen_ptr = Module.findExportByName(null, exportName);
+        if (dlopen_ptr) {
+            Interceptor.attach(dlopen_ptr, {
+                onEnter: function (args) {
+                    var libPath = args[0].readCString();
+                    if (libPath.indexOf(libraryName) !== -1) {
+                        console.log(`libraryPath: ${libPath}`);
+                        this.hook = true
+                    }
+                },
+                onLeave: function (retVal) {
+                    if (this.hook) {
+                        this.hook = false;
+                        console.log('hooking')
+                        resolve(fn());
+                    }
+                }
+            })
+        } else {
+            reject(exportName + ' not found')
+        }
+    })
+ }
+ 
+ 
+ 
+ function hook(){
+    const libraryName = 'libun1ksec.so';
+    return todoOndlopen(libraryName, ()=>{
+        const libraryName = 'libun1ksec.so';
+        let libso = Process.getModuleByName(libraryName);
+        let buffer = null;
+        var base_addr = Module.findBaseAddress(libraryName);
+
+        Interceptor.attach(base_addr.add(0x30FA64), {
+            onEnter: function(args) {
+                this.length = args[1].add(8).readUInt() //获取data部分长度
+                console.log(hexdump(args[1].add(16).readPointer(),{ length: this.length }))
+            },
+            onLeave: function (retVal) {
+                console.log('on leave')
+                
+            }
+        
+    })
+ })
+}
+ 
+ 
+ 
+ hook()
+```
+
+成功获取序列化数据的内容：
+
+![](https://p0.meituan.net/xianfu/16041c934c3506f5eee6d33983bebdfa353075.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+使用cyberchef解码成功
+
+![](https://p1.meituan.net/xianfu/9668fcf6624526fa4b113adc6e5d7dba376570.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+
+### Hook aes加密算法
+
+看到一个evp的初始化方法EVP_CipherInit_ex。
+
+![](https://p1.meituan.net/xianfu/ff9a4d6e0b1f28ee1bf7bf096a07250f50611.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+第四、五入参分别是key和iv，对照ida
+
+![](https://p0.meituan.net/xianfu/8e74b0a5be078774a779ae9d9572e84896154.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+大致能知道v30是&ctx，v19是加密模式 aes-cbc-256，v74是key，v73是iv这里都是0。
+
+key :
+
+```
+.rodata:0000000000220FBC xmmword_220FBC  DCB 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18
+```
+但是这样是因为apk写的太简单了，还是通过内存布局里看到这些定义比较好。实际上初始化的过程中以及获取加密结果的方法，都只是把一些参数属性设置到上下文&ctx中而已。我们可以查看一ctx的结构体定义：
+
+![](https://p1.meituan.net/xianfu/f7e986ab1b686386609fe136243b8492363994.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+那么在程序运行到 EVP_CipherUpdate函数时，就可以获取args[0],根据结构体定义找到key和iv。
+
+![](https://p0.meituan.net/xianfu/96bab9652d09dcb2c359ed3e04dbfc65336912.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+使用frida进行inline hook
+
+```javascript
+        Interceptor.attach(base_addr.add(0x30FC04), {
+            onEnter: function(args) {
+			console.log(hexdump(args[0]))
+            }
+    })
+```
+
+![](https://p1.meituan.net/xianfu/2a6e68d1ce5a65e1a414f05005c8442e349173.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+能看到明文存在里面某个区域位置，其他需要结合结构体定义来看。后续在实战分析加密算法的时候再继续深入。本章完结。</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

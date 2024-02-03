@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>💻 std::string内存布局 - Depy's docs</title><li><a href="/view/74.html">💻 std::string内存布局</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>💻 std::string内存布局</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,52 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:逆向分析 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 前言
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+由于protobuf的SerializeToString返回值是std::string，在frida hook的工作中遇到了一些晦涩难懂的问题。需要去了解一下它的内存布局。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+demo代码：
+
+```cpp
+#include <iostream>
+using namespace std;
+
+int main(){
+    long bottom = -1;
+    std::string buildId = "123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123123";
+    cout << buildId <<endl;
+}
+```
+
+## clion编译下的内存布局
+
+使用clion观测，在cout此处打上断点：
+
+![](https://p1.meituan.net/xianfu/948448105f388ee304360b20eb02eaa9314697.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+使用memory查看 &buildId的内存布局
+
+![](https://p0.meituan.net/xianfu/5023027fc0848c9b14e1e4bfc5468e68146642.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/2fdba91f7d4928df9e63f679a7d80d00103659.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/4c7d18258ea8b84b7efaf9276cd9f1fa156835.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+## android studio编译下的内存布局
+
+![](https://p1.meituan.net/xianfu/ce597865a71263c20887c6b66c4d6c96204688.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p1.meituan.net/xianfu/eb744c25e3f690d21adc1d7fb760e9bd100695.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+可以看出是以【cap+size+data地址】的形式布局。
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

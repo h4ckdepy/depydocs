@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📚 注入与HOOK - Depy's docs</title><li><a href="/view/119.html">📚 注入与HOOK</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📚 注入与HOOK</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,71 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:读书笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">[转载] https://github.com/jmpews/pwn2exploit/blob/master/linux%E8%BF%9B%E7%A8%8B%E5%8A%A8%E6%80%81so%E6%B3%A8%E5%85%A5.md
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+## 链接器和装入器的基本工作原理
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+一个程序要想在内存中运行，除了编译之外还要经过链接和装入这两个步骤。
+
+引入这两个步骤带来的好处就是可以直接在程序中使用printf和errno这种有意义的函数名和变量名，而不用明确指明printf和errno在标准C库中的地址。
+
+编译器和汇编器的出现使得程序员可以在程序中使用更具意义的符号来为函数和变量命名，这样使得程序在正确性和可读性等方面都得到了极大的提高。
+
+一个完整的程序往往被分割为若干个独立的部分并行开发，而各个模块间通过函数接口或全局变量进行通讯。
+
+这就带来了一个问题，编译器只能在一个模块内部完成符号名到地址的转换工作，不同模块间的符号解析由谁来做呢？
+
+比如前面所举的例子，调用printf的用户程序和实现了printf的标准C库显然就是两个不同的模块。实际上，这个工作是由链接器来完成的。
+
+符号解析：当一个模块使用了在该模块中没有定义过的函数或全局变量时，编译器生成的符号表会标记出所有这样的函数或全局变量，而链接器的责任就是要到别的模块中去查找它们的定义，如果没有找到合适的定义或者找到的合适的定义不唯一，符号解析都无法正常完成。 
+
+
+重定位：编译器在编译生成目标文件时，通常都使用从零开始的相对地址。然而，在链接过程中，链接器将从一个指定的地址开始，根据输入的目标文件的顺序以段为单位将它们一个接一个的拼装起来。除了目标文件的拼装之外，在重定位的过程中还完成了两个任务：一是生成最终的符号表；二是对代码段中的某些位置进行修改，所有需要修改的位置都由编译器生成的重定位表指出。 
+
+
+
+## 注入理论
+
+调用dlopen加载外部so文件。
+
+### 问题1
+
+如何能够接触到正在执行进程的内存空间？
+
+通过 ptrace, ptrace 可以让目标 pid 进程成为当前进程的子进程, 进而可以访问目标进程的内存空间, 寄存器。
+
+PTRACE_ATTACH 挂载目标pid
+PTRACE_CONT 让子程序继续运行
+PTRACE_PEEKTEXT 读取内容
+PTRACE_POKETEXT 写入内容
+
+现在既然已经可以读写目标进程的内存空间了, 下一步已经就是在目标内存空间调用 dlopen。
+
+既然要调用 dlopen, 肯定需要 dlopen 函数符号的地址。但是默认 libc-2.19.so 是不包含 dlopen, 只有 __libc_dlopen_mode。
+
+```
+➜  elf readelf --dyn-syms /lib/i386-linux-gnu/libdl.so.2 | grep dlopen
+    29: 00000d30   101 FUNC    GLOBAL DEFAULT   13 dlopen@@GLIBC_2.1
+    30: 00001900   108 FUNC    GLOBAL DEFAULT   13 dlopen@GLIBC_2.0
+➜  elf readelf --dyn-syms /lib/i386-linux-gnu/libc-2.19.so | grep dlopen
+  2294: 00123ae0    91 FUNC    GLOBAL DEFAULT   12 __libc_dlopen_mode@@GLIBC_PRIVATE
+```
+这两个函数实现的是一样的效果, 其最终都是调用的 _dl_open, 可以通过 glic 源码查看相关调用过程, 因此可以通过 void * __libc_dlopen_mode (const char *name, int mode) 加载外部so
+
+### 问题2
+
+__libc_dlopen_mode 的内存地址是多少(如何查找)？
+
+有一种方法是, 通过查看 cat /proc/1234/maps 的加载地址, 加上函数符号在文件中的偏移来得到, 这里并不打算采用这种方法, 而是通过解析 ELF 文件结构得到 __libc_dlopen_mode 函数符号的地址。
+
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

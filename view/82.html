@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📚《逆向工程权威指南》 - 1-4章 - Depy's docs</title><li><a href="/view/82.html">📚《逆向工程权威指南》 - 1-4章</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📚《逆向工程权威指南》 - 1-4章</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,133 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:读书笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">*笔者使用设备是Macbook Pro M2，故文中仅关注arm32及64的部分。
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+## CPU
+
+CPU是执行程序机器码的硬件单元。
+
+指令码:CPU受理的底层命令。典型的底层命令有:将数据在寄存器间转移、操作内存、计算运算等指令。每类CPU都有自己的指令集架构(InstructionSetArchitecture, ISA)。
+
+机器码 : 发送给CPU的程序代码。 一条指令通常被封装为若干字节 。
+
+汇 编 语 言: 为了让程序员少长白头发而创造出来的、易读易记的代 码，它有很多类似宏的扩展功能。宏（Macro）是一种在编程语言中用来定义和展开代码片段的机制。宏可以将一组代码模板定义为一个可重复使用的代码块，并在编译时将宏调用处的代码替换为定义的代码片段。
+
+CPU寄存器:每种CPU都有其固定的通用寄存器(GPR)。x86CPU里一般有8 个GPR，x64里往往有16个GPR，而ARM里则通常有16个GPR。您可以认为CPU寄存器是一种存储单元，它能够无差别地存储所有类型的临时变量 。假如您使用一种高级的编程语言，且仅会使用到8个32位变量，那么光CPU自带的寄存器就能完成不少任务了。
+
+我们需要用一种程序把高级的编程语言转换为CPU能受理的底层汇编 语言，而这种程序就是人们常说的编译器/Compiler。
+
+### 指令集架构
+
+x86架构中，**各opcode (汇编指令对应的机器码)的长度不尽相同**。出于兼容性的考虑，后来问世的64 位CPU指令集架构也没有大刀阔斧地摒弃原有指令集架构。很多面向早期16 位 8086CPU 的指令，不仅被x86 的指令集继承，而且被当前最新的CPU指令集继续沿用。
+
+ARM属于RISC（精简指令集）CPU，它的指令集在设计之初就力图保持各opcode 的长度一致。在过去，这一特性的确表现出了自身的优越性。最初的时候，所有ARM指令的机器码都被封装在4 个字节里。人们把这种 运 行 模 式叫 作 “ A R M 模 式 ” 。
+
+Thumb指令集是一种 充分利用处理器性能、足以与ARM 模式媲美的独立的运行模式。由 于 x c o d e 编 译 器 默 认 采 用 T h u m b - 2 指 令 集 编 译， 所 以 现 在 主 流 的 iPod iPhone/iPad应用程序都采用了Thumb-2指令集。
+
+## 最简函数
+
+
+*![](https://p0.meituan.net/xianfu/b9eebfec9110ba92b5d7dac41d4522b342727.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+此处下断点，在clion的lldb调试器输入disassemble：
+
+![](https://p0.meituan.net/xianfu/74f3cf5a3eeff3762ef51bc43db8fce321443.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+在 ARM64 的函数调用约定中，返回值通常存储在 x0 寄存器中。然而，有时候会出现返回值存储在 w0 寄存器中的情况。
+
+这种情况通常发生在返回值是一个小于等于 32 位的整数类型时。ARM64 架构中，x0 寄存器是 64 位的通用寄存器，而 w0 寄存器是 x0 的低 32 位部分。当返回值可以用 32 位寄存器表示时，编译器可能会选择将返回值存储在 w0 寄存器中，以节省寄存器的使用。最终使用ret指令返回。
+
+在arm32中：
+
+![](https://p1.meituan.net/xianfu/2cfafaac665c32961ec9c7baaaf79fd326624.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+将值存储在寄存器r0中，lr寄存器存储函数结束之后的返回地址 。BXLR指令的作用是跳转到返回地址 ， 即返回到调用者函数，然后继续执行调用体caller 的后续指令。
+
+## hello world
+
+![](https://p0.meituan.net/xianfu/3938132a0118ae3c53c9533e03db898c219853.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+ida->option->geneal 查看机器码，长度改成8位
+
+![](https://p0.meituan.net/xianfu/92a23040f05ec8b29d2fab06f05163bd330489.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+
+![](https://p0.meituan.net/xianfu/d80d3ab865e28e7e5c14255ac12cab59248157.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+我们发现adrl这条指令出现了8字节？这是为什么呢？
+
+打开https://armconverter.com/
+
+把机器码复制后粘贴：
+
+![](https://p1.meituan.net/xianfu/013422bc626c216e5c2162025a664c5053119.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+发现实际上这是一个两条指令组成的伪指令，ida为了方便查看所以这么展示。所以不用怀疑，arm64中依然是4字节为一条指令。
+
+![](https://p0.meituan.net/xianfu/729e7d6f866117375224ce964ed54bfd38479.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+指令实现把指定地址赋值给x0寄存器，根据函数调用约定，x0-x7会作为函数调用的入参，所以x0极大可能会作为bl 跳转后的printf函数的入参，这也就是为什么很多反编译器反编译函数的时候，有很多的参数，很多参数和实际开发的代码差距很大，这是因为反编译器没办法知道操作的几个寄存器是否作为入参传入了函数。
+
+
+```
+__text:0000000100003F58 FF 83 00 D1                             SUB             SP, SP, #32
+__text:0000000100003F5C FD 7B 01 A9                             STP             X29, X30, [SP,#16]
+__text:0000000100003F60 FD 43 00 91                             ADD             X29, SP, #16
+__text:0000000100003F64 08 00 80 52                             MOV             W8, #0
+__text:0000000100003F68 E8 0B 00 B9                             STR             W8, [SP,#8]
+__text:0000000100003F6C BF C3 1F B8                             STUR            WZR, [X29,#-4]
+__text:0000000100003F70 00 00 00 90 00 60 3E 91                 ADRL            X0, aHelloWorld ; "hello world\n"
+__text:0000000100003F78 05 00 00 94                             BL              _printf
+__text:0000000100003F7C E0 0B 40 B9                             LDR             W0, [SP,#8]
+__text:0000000100003F80 FD 7B 41 A9                             LDP             X29, X30, [SP,#16]
+__text:0000000100003F84 FF 83 00 91                             ADD             SP, SP, #0x20 ; ' '
+__text:0000000100003F88 C0 03 5F D6                             RET
+```
+
+### 编译优化
+
+在上文中我们在汇编代码可以看到这样的冗余指令：
+
+```
+__text:0000000100003F64 08 00 80 52                             MOV             W8, #0
+__text:0000000100003F68 E8 0B 00 B9                             STR             W8, [SP,#8]
+//something
+__text:0000000100003F7C E0 0B 40 B9                             LDR             W0, [SP,#8]
+```
+首先这条指令是将立即数0存储到寄存器W8中。然后将寄存器W8中的数据存储到内存中。最后从相同位置把值赋值给w0寄存器作为函数返回值，也就是实现return 0的效果。
+
+有个疑问是为什么不直接在最后以 MOV       W0, #0的方式来做呢？这样不就是省掉了对栈的操作，省掉了两个指令呢？
+
+这个问题涉及到编译器优化和代码生成的策略。编译器在生成代码时会考虑多个因素，包括代码的可读性、执行效率和代码大小等。在这种情况下，使用STR指令将寄存器W8中的数据存储到内存中，然后再使用LDR指令将值加载到寄存器W0中，可能是为了保持代码的一致性和可读性。这样的代码结构更加清晰，易于理解和维护。另外，编译器可能会根据具体的优化策略和目标平台的特性来选择生成的指令序列。在某些情况下，编译器可能会进行指令重排或其他优化，以提高代码的执行效率。
+
+例如设置编译优化选项为-O3：
+
+![](https://p1.meituan.net/xianfu/94c707c9c9ab3b111237db6da0d39e7a172038.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+ wzr是32位的零寄存器。我们会得到自己期望的结果。
+ 
+ ### 函数序言和函数尾声
+ 
+每个函数调用，都会有 入栈 和 出栈 操作。x29寄存器是栈帧指针寄存器（FP），x30寄存器是lr寄存器。也就是函数返回地址。以上文代码为例，画两个图：
+
+入栈:
+
+![](https://p0.meituan.net/xianfu/a3996d37054f297835f14c7f5774b7ba174657.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+出栈：
+
+![](https://p0.meituan.net/xianfu/4776b08f747f115e37a87a85873d1b5099884.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+借助函数序言和函数尾声的有关特征，我们可以在汇编语言里识别各个函数。这也是一些反编译器的识别原理之一。</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

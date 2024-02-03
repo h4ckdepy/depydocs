@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑  Un1kMsg使用 - Depy's docs</title><li><a href="/view/120.html">📑  Un1kMsg使用</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑  Un1kMsg使用</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,107 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:DepyDocs </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 基础介绍
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+暂不开源，提供线上平台使用。使用前关注公众号『 明晚吃火锅 』即可。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+开发目的：用于平替Server酱，防止被限制使用次数，辅助各类平台、Agent进行消息推送。
+
+目前抽空兼容了一些平台，其他的也在持续开发中。
+
+绝对不会收费，永远免费使用～
+
+## 使用说明
+
+1、配置面板
+
+**使用微信扫码即可**
+
+https://msg.rce.ink/index/forward
+
+2、数据配置
+
+![](https://img.meituan.net/imgupload/e25df23378dadbc3323352696705f7c259430.png)
+
+马赛克处填入各大平台提供的webhook token，获取细节不赘述，自行百度。
+
+3、通道切换
+
+![](https://img.meituan.net/imgupload/456d261d55b2670d7418958a0338976d51661.png)
+
+默认提供Un1kMsg服务通道（公众号通知），通过第2步骤，配置完毕token后可选择其他通道。
+
+消息格式仅钉钉机器人支持Text，其余通道兼容开发中～
+
+4、钉钉机器人配置
+
+钉钉机器人配置时，选择白名单模式，写入本站ip。
+
+ping msg.rce.ink
+
+
+## API
+
+最简单的调用方式，直接在浏览器中访问下列接口。
+
+支持POST/GET请求,若内容文本过长建议使用POST请求方式,GET方式对URL长度有限制。
+
+```
+http://msg.rce.ink/index/processmsg/?title=标题&content=内容&sendkey=你的发送key
+```
+
+错误码对照：
+
+|  错误码 |  语义 |
+| ------------ | ------------ |
+| 0| SendKey错误  |
+| 1| 标题长度大于32  |
+| 2| 用户被限制发送消息（封禁）  |
+| 3|  用户次数消耗完毕 |
+
+
+注意：用户初始次数为1000，每月刷新，防止滥用。定期在本文发送充值卡密，卡密不会进行售卖收费，仅通过本文分享，请持续关注。
+
+最新卡密列表(1000次):
+
+```
+yZn8fVLHalcFDCS 
+gIhDkupGifMpdx0 
+f1ukQ2qQI3UrXSK 
+dwWfiyP9Paatzxy 
+q300pBSXPQvxAAK 
+RcZH8xMHxaeofB3 
+```
+
+## 端对端加密
+
+提供API快速获取密文
+
+```
+http://msg.rce.ink/index/processmsg/cryptomsg?key=密钥&msg=加密内容
+```
+
+本接口不做数据流转、存储，甚至开启了WAF路径白名单，只是做了AES加密。
+
+如果您认为密钥和明文内容还是会缓存在我的日志中，那么您也可以通过以下类似代码实现。以php为例，本地加密后进行后续步骤即可：
+
+``` php
+<?php
+	$key = substr(md5($key), 0, 16);
+	$iv = $key;
+	$data = openssl_encrypt($msg,"AES-128-CBC",$key,true,$iv); 
+	return base64_encode($data);
+?>
+```
+
+返回结果替换上面的接口content处,增加参数**crypto=1** </textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

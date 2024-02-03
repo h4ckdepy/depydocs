@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑 JNI 使用基础 - Depy's docs</title><li><a href="/view/76.html">📑 JNI 使用基础</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑 JNI 使用基础</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,69 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:逆向分析 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## Native层传递复杂对象给Java层
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+![](https://p0.meituan.net/xianfu/e393776df36742ca9135d4825527792d17924.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+定义了一个Device的内部类，get方法在native层获取属性返回对象。
+
+类型修改为jobject
+![](https://p0.meituan.net/xianfu/e1cafa8f07482fc5d325f03b28f7e98431916.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+通过env->findclass方法找到类
+
+![](https://p0.meituan.net/xianfu/507f186d2838a63ddddcefa19846de2423460.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+通过clazz与getMethodID的方法获取构造方法，由于类构造函数的属性有三个string类型的值，需要通过Ljava/lang/String;来定义，L代表是引用类型，引用java/lang/String的类型，再以;分割。写三个即可，对于基本类型的参数，不需要使用 L 来表示。在 JNI 中，基本类型的参数可以直接使用对应的类型字符来表示，例如 I 表示整数类型（int），J 表示长整数类型（long），F 表示浮点数类型（float），等等。
+
+![](https://p0.meituan.net/xianfu/736b63f9382fe8f3bddf9db66e9376be40715.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+最后通过jstring定义要设置的属性值
+
+    jstring protobuf = env->NewStringUTF(hexString.c_str());
+    jstring aesKey = env->NewStringUTF(strAesKey.c_str());
+    jstring aesIv = env->NewStringUTF(strAesIV.c_str());
+    return env->NewObject(device_cls,constructMId,protobuf,aesKey,aesIv);
+
+在通过newObject的方法返回对象。
+
+## Native层调用java层方法
+
+```cpp
+extern "C" JNIEXPORT void JNICALL
+Java_com_example_a2023110803_MainActivity_nativeMethod(JNIEnv *env, jclass obj) {
+
+    // 找到类
+    jclass cls = env->FindClass("com/example/a2023110803/MainActivity");
+
+    // 根据类找到方法
+    jmethodID methodId = env->GetMethodID(cls, "sendReq", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+
+    // 创建三个jstring参数
+    jstring param1 = env->NewStringUTF("Hello");
+    jstring param2 = env->NewStringUTF("World");
+    jstring param3 = env->NewStringUTF("!");
+
+    // 在jni中创建对象
+    jobject object = env->AllocObject(cls);
+   // 调用 sendReq 方法
+    env->CallVoidMethod(object, methodId, param1,param2, param3);
+
+    // 释放字符串参数的引用
+    env->DeleteLocalRef(param1);
+    env->DeleteLocalRef(param2);
+    env->DeleteLocalRef(param3);
+
+}
+```
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

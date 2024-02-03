@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📚《深入探索安卓热修复技术原理》1-32 - Depy's docs</title><li><a href="/view/112.html">📚《深入探索安卓热修复技术原理》1-32</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📚《深入探索安卓热修复技术原理》1-32</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,178 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:读书笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 技术介绍
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+传统流程技术弊端：
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+1、重新发布版本代价太大
+2、用户下载安装成本太高
+3、Bug不修复用户体验差
+
+hybird方案，将常用业务逻辑以h5的方式展示出来，但需要开发者额外掌握前端语言等技术栈。对于无法转换成h5的业务逻辑也无法做到修改。
+
+热修复技术应运而生，通过云端推送补丁，进行自动拉取与补丁修复。
+
+![](https://img.meituan.net/imgupload/6ceab5cfabe99836af860a9076275736186860.png)
+
+### 底层修复方案
+
+在已经加载的类中替换原有的方法，但是无法实现方法的增加与字段的增加，这样会导致无法索引到正确的类。并且实例化的对象会出现非预期的效果。
+
+依赖修改虚拟机方法实现的具体字段，例如修改Dalvik方法的jni函数指针，改类与方法的访问权限等。安卓是开源的，各大手机厂商可以对源码进行改造，如果写死了ArtMethod方法的结构，但是适配到了魔改的手机，会出现非预期的后果。
+
+
+### 类加载方案
+
+在app重新启动后，让classloader加载新的类。安卓无法对已加载的类进行卸载，不重启，原先的类还在虚拟机中，也无法加载新的类。只有在重启后，在加载旧类之前抢先加载，这样后续访问这个旧类的时候才会resolve成新的类。
+
+### 合并方案
+
+根据情况选择修复方法，补丁生成时判断使用底层修复还是类加载方案修复。
+
+### 资源修复
+
+#### Install Run 实现原理
+
+1、构造新的AssetManager，反射调用addAssertPath。获取一个包含新资源的AssetManager
+2、通过反射把所有引入旧的AssetManager修改为新的AssetManager
+
+代码处理逻辑基本集中于如何找到所有引用AssetManager的代码位置。
+
+#### Sophix 实现
+
+1、构造新的资源包，只包含新资源与修复的资源
+2、在AssetManager对象做析构与重构，这样原来的所有引用是不会发生改变的。
+
+这样无需下发完整包，无需合成完整包，替换更快更完全。
+
+### so层修复
+
+so库修复本质是对native方法的修复和替换。
+
+把补丁so库的路径插入到native-libraryDirectories数组的最前面。就能达到加载so库的时候是补丁so库，而不是加载原来的so库。在启动期间反射注入patch中的so库，对开发者是透明的。其他方案可能需要手动修改system.load函数以实现替换目的。
+
+## 技术原理
+
+### Andfix底层替换方案原理
+
+在native层中直接替换掉原有方法。在原有类基础上进行修改。具体实现：
+
+![](https://img.meituan.net/imgupload/ee55d32083aee39723b52725865b8d8825108.png)
+
+参数一是需要修改的方法，参数二是需要替换的方法。新方法存在于补丁包中。
+
+![](https://img.meituan.net/imgupload/aaaa4ca856c87e26d69aa0ed10191ead43120.png)
+
+通过安卓虚拟机类型判断，切换不同分支。以art虚拟机为例，不同安卓版本的art，底层java对象的数据结构是不同的。所以会根据不同的安卓版本进入不同的分支，以安卓6.0为例：
+
+![](https://img.meituan.net/imgupload/2606a670317728914e85ac667e94342f44012.png)
+![](https://img.meituan.net/imgupload/9f54022fca37ba8132e4cd63fee3dae5216719.png)
+
+通过env->FromReflectMethod,可以由method对象获取到这个方法对应的ArtMethod的真正起始地址，然后把它强转为指针，然后就可以对所有成员进行修改。
+
+通过上述代码，实现对目标函数到补丁函数的替换。
+
+### 为何可以实现热修复？
+
+安卓6.0，虚拟机调用方法原理。
+
+artmethod结构最重要的两个字段是entry_point_from_intercept和entry_point_from_quick_compiled_code，他们是方法的执行入口。java代码会在安卓虚拟机中编译成Dex code。art中采用解释模式或者AOT机器码模式执行。
+
+解释模式是提取dex code，逐条解释执行即可。解释模式下会取得这个方法的entry_point_from_intercept，然后跳转过去执行。
+
+aot模式会预编译dex code对应的机器码，然后运行期间一条条执行机器码即可。同样的，他会跳转到entry_point_from_quick_compiled_code地址。
+
+所以会想到替换这两个入口地址即可实现方法的替换。但实际上，用到了结构中的其他成员字段。
+
+![](https://img.meituan.net/imgupload/87e3cd947ff23b170b26f363d798ea8330605.png)
+
+上图中的代码，编译成aot机器码，如下：
+
+![](https://img.meituan.net/imgupload/6dde183ab060367ac019469ac3c60288168907.png)
+
+在调用方法时，取得了结构中的dex_cache_resolved_methods_字段。这是一个存放了ArtMethod* 的指针数组。
+
+通过它可以访问到这个method所在dex的所有method对应的artmethod*。Activity.oncreate方法的索引是70，64位系统每个指针大小是8字节。artmethod*元素是从这个数组的0x2个位置开始存放的，因此偏移是（70+2）*8。其他例子中还会用到其他成员属性，所以需要把所有的成员字段都做替换才能做到顺滑的热修复。
+
+### 兼容缺陷
+
+在上面的例子中。andfix把底层结构强转了art::method::ArtMethod，这是andfix自己定义的类，与aosp源码一致。但是并不代表是运行时机型的artmethod，如果运行机器在第一个成员属性前加了属性，那么强转就会出现错误。导致需要替换的成员没有做到应该的替换。
+
+这也是andfix无法适配很多机型的原因，本质上就是手机厂商对rom的artmethod做了魔改。
+
+## 突破底层结构差异
+
+将成员属性替换编程artmethod整体替换。
+
+![](https://img.meituan.net/imgupload/fe84ab4634e0b38d77780df244861cb190533.png)
+
+变成
+
+![](https://img.meituan.net/imgupload/e05643a8dc25417f9683699480abb9109068.png)
+
+
+这样即便任意厂商把底层结构改的六亲不认，也可以做到把旧方法成员变成新方法成员。但是关键的地方在于，如何计算sizeof(ArtMethod)。size计算有偏差，或者替换区域超出边界，会出现非常严重的后果。
+
+rom开发者来说非常简单，但是上层开发者是需要在运行时获取ArtMethod的大小的。所以需要从虚拟机的源码入手，从底层的数据结构以及排列特点探寻答案：
+
+![](https://img.meituan.net/imgupload/e93caea5ad1e72429b5d3938659eb4c996515.png)
+
+art中，初始化一个类会给类的所有方法分配空间。有direct方法和virtual方法，分别是类的static与不可被继承的对象方法。virtual中就是所有的可以被继承的方法了。 AllocArtMethodArray函数分配了他们的方法所在区域。
+
+![](https://img.meituan.net/imgupload/25f39a8afb0d3ac2bf62d64c1f5258c492441.png)
+
+ptr是方法数组的指针，方法是一个接一个紧密的new出来的。这时只是分配空间，并没有填入各个ArtMethod的成员值。
+
+![](https://img.meituan.net/imgupload/af7dc5ef7ecf2377e081e3b8060c902532930.png)
+
+可以发现ArtMethod是紧密排列的，所以一个ArtMethod的大小不就是相邻两个方法对应的ArtMethod的起始地址差值吗？
+
+![](https://img.meituan.net/imgupload/81462e9f420905d7f586cc9d6b5d1b4d40141.png)
+
+因此我们可以在jni层获取到他们的值。问题 就迎刃而解了。
+
+## 访问权限
+
+补丁中的类访问同包名下的类会出现访问权限异常。因为与原来的类不是一个classloader，因此两个类不会判定为同包名。
+
+![](https://img.meituan.net/imgupload/0336125f0b9e46b8ef56489dcbf543c422127.png)
+
+虚拟机的代码中也要求classloader必须一致。所以需要反射修改新类的classloader为原来的classloader。
+
+![](https://img.meituan.net/imgupload/89fa2268cbadb66440e6b0f4fc92b75536455.png)
+
+### 反射调用非静态方法产生的问题
+
+![](https://img.meituan.net/imgupload/2b9e9d04d5202857ad689962a251a7dc33854.png)
+
+![](https://img.meituan.net/imgupload/455c98f8cc636774a70efdacc802284e27765.png)
+
+反射调用后，虽然got的类名一致。但是确是不同的类。前者是被热替换的类，后者是原有的类。两者是不同的。在底层会调用到invokemethod：
+
+![](https://img.meituan.net/imgupload/baae3658a292f73772dfb9121bb499a851023.png)
+
+这里会做验证，o代表作用的对象。c代表ArtMethod所属的class。所以o必须是c的实例才能通过验证，所以必然不会通过验证。
+
+静态方法是在类的级别直接调用的，不需要接受对象作为入参。所以无需检查。对于这种问题，后续会使用冷启动的方法来处理。
+
+## 即时生效限制
+
+无法添加减少存在的类的字段、方法，只能做到内容更换。两种情况不适用：
+
+1、引起原有类结构发生变化的更改
+2、修复了的非静态方法会被反射调用
+
+对于其他情况，这种方式的热修复都可以被任意使用。
+
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

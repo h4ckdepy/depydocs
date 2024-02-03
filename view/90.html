@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>✍️ Xposed运行原理 - Depy's docs</title><li><a href="/view/90.html">✍️ Xposed运行原理</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>✍️ Xposed运行原理</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,28 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:测试笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">
+zygote 进程是 Android 系统中第一个拥有 Java 运行环境的进程，它是由用户空间 1 号进程 init 进程通过解析 init.rc 文件创建出来的，从 init 进程 fork 而来。
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+zygote 进程是一个孵化器。Android 系统中所有运行在 Java 虚拟机中的系统服务以及应用均由 zygote 进程孵化而来。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+zygote 通过克隆（fork）的方式创建子进程，fork 出来的子进程将继承父进程的所有资源，基于这个特性，zygote 进程在启动过程将创建 Java ART 虚拟机，预加载一个 Java 进程需要的所有系统资源，之后子进程被创建后，就可以直接使用这些资源运行了。
+
+自 Android 5.0 系统开始，zygote 不再是一个进程，而是两个进程，一个是 32 位 zygote，负责孵化 32 位进程（为了兼容使用了 armeabi 和 armeabi-v7a 等 32 位架构的本地动态库的应用），另一个是 64 位 zygote 进程，负责孵化 64 位应用进程（可加载 arm64-v8a 等 64 位架构本地库）。
+
+Xposed 对 zygote 进程的实现源码进行修改后，重新编译出 app_process 可执行文件，替换了系统的 app_process 文件（包括 64 位 zygote），并在其中加载了 XposedBridge.jar 这个 Dex 代码包，它包含 Xposed 的 Java 层实现代码和提供给 Xposed 模块的 API 代码，那么当 init 进程启动 zygote 服务进程时，将执行修改过的 app_process 文件，此时 zygote 进程就具有了 Xposed 的代码，Xposed 可以进行加载Xposed 模块代码等任意操作了。
+
+所有 Android 应用都是运行在 Java 虚拟机上的，所有的 Android 应用都是 zygote 的子进程，那么当 Android 应用进程启动后，将具备 zygote 进程加载的所有资源，从而将 Xposed 代码继承到了 Android 应用进程中，实现了将 Xposed 代码加载到每一个进程中的目的。
+
+![](https://img.meituan.net/imgupload/bebb4ce52cfbeba0cea38e5a3b217365185690.png)
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

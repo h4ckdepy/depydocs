@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>💻 安卓内联汇编开发 - Depy's docs</title><li><a href="/view/81.html">💻 安卓内联汇编开发</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>💻 安卓内联汇编开发</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,118 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:逆向分析 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## C++ 实现uname
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+```c++
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_a2023110803_common_NativeFunctions_libcUname(JNIEnv *env, jclass clazz) {
+    // TODO: implement libcUname()
+    struct utsname buffer;
+    errno = 0;
+    if (uname(&buffer) < 0) {
+        LOGD("uname");
+    }
+    jstring param1 = env->NewStringUTF(buffer.release);
+    return param1;
+}
+```
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+通过调用uname函数，将返回值记录在buffer中。
+
+此时攻击者通过hook常见的系统调用函数可以直接修改结果与返回值，不够安全。
+
+## 内联汇编获取Uname结果
+
+``` c++
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_example_a2023110803_common_NativeFunctions_inlineUname(JNIEnv *env, jclass clazz) {
+    // TODO: implement inlineUname()
+    struct utsname buffer;
+    raw_syscall(__NR_uname,&buffer);
+    return env->NewStringUTF(buffer.release);
+}
+```
+raw_syscall定义于Syscall.S,这段汇编代码是一个用于执行系统调用的函数 raw_syscall。它使用了ARM64架构的指令。
+
+```
+    .text
+    .global raw_syscall
+    .type raw_syscall,@function
+
+raw_syscall:
+        MOV             X8, X0
+        MOV             X0, X1
+        SVC             0
+        RET
+```
+
+需要额外添加一些配置，首先在这个函数调用位置添加一个函数声明：
+
+```
+extern "C" long raw_syscall(int i,utsname *pUtsname);
+```
+引用
+```
+#include <asm/unistd.h>
+```
+asm/unistd.h 是一个头文件，它定义了与系统调用相关的常量和函数原型。它通常用于在汇编语言中使用系统调用。通过包含 asm/unistd.h 头文件，汇编程序可以使用系统调用的常量和函数原型，从而能够直接调用系统调用，执行底层的操作，如文件操作、进程管理、网络通信等。
+
+cmakes配置：
+
+![](https://p0.meituan.net/xianfu/7b62ada628b5ef7628c66ede8edd077d29907.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/5f62f59e380fb282261e7e210c01a6385962.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+通过使用b哥的工具，可以hook svc系统调用
+```
+python multi_frida_seccomp.py com.example.a2023110803
+```
+![](https://p0.meituan.net/xianfu/7f3b98a91658e6cf31ccf65f3e57993f132558.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+## Frida Work
+
+忘掉上文，假定自己找到了一个svc调用的口子。ida反编译
+
+![](https://p1.meituan.net/xianfu/6f5a38e8c9d97ad74f9f3faadb9a74ba101886.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+看到svc调用，查看相关文档，https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md
+
+![](https://p1.meituan.net/xianfu/6a43c8cd4c556293a7a0c9f79a840fff41593.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+可以看到x8寄存器是opcode，这是系统调用函数约定。通过frida hook一下此时寄存器的值。
+
+![](https://p1.meituan.net/xianfu/8e03d9e93f30e2161a7c9fe2a30a77b4234628.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+发现x8是a0，对应
+
+![](https://p0.meituan.net/xianfu/5d6673bc157178f85f240e72e6bde55513604.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+得知此系统调用应该有两个函数，一个opcode=0xa0，一个结构体指针，用于保存信息。查看函数的交叉引用：
+
+![](https://p1.meituan.net/xianfu/8877da4e507bbcbd918ad6dfc9718774100644.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/7897d3bafd7025e364f15ef86122a22362599.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+发现这里把0xa0赋值给w0，x1为sp+0x60，之后才跳转到raw_syscall函数。sp 是栈指针（Stack Pointer）的缩写。栈指针是一个特殊的寄存器，用于指示当前栈的顶部位置。联系上文，所以x1是utsname结构体指针的地址。所以用frida hook即可，sp的值由函数负责栈平衡，所以不会改变。
+
+Hook时机为0x3126CC，执行完毕raw_syscall函数后，无条件跳转，使用hexdump获取指定地址内存中的值：
+
+![](https://p0.meituan.net/xianfu/5da04dd126449a438cdf64d15db3defd290089.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+发现值确实获取到了，找到这个结构体的定义
+
+![](https://p0.meituan.net/xianfu/e7c97d2f07e0fa977790b79f978aa75a116913.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+定义了sysname、nodename、release等信息，每个属性都占65个字节。从起始位置开始取值，65字节一组，取6组即可。或者拖出来自己分也行:)</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

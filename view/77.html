@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑【前端开发】lightbox+pjax最佳实践 - Depy's docs</title><li><a href="/view/77.html">📑【前端开发】lightbox+pjax最佳实践</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑【前端开发】lightbox+pjax最佳实践</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,107 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:编程开发 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 前言
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+给docs模板做优化的时候考虑到了局部刷新的功能，这样能够让网站响应速度更快。于是引入了jquery-pjax这个框架，使用方法也很简单。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+后面给图片做处理的时候发现这样的问题，图片PC上显示的还行，但是手机端由于被css进行百分比缩放导致看不清，需要用lightbox这样的方法去放大图片。
+
+但是两个方法一起用的时候发生jquery的冲突，我本来就不是一个前端很厉害的人，也不想花时间在这上面去解决dom使用冲突的问题。所以干脆就换了个方案，使用非jquery的pjax前端框架。
+
+
+## 最佳实践
+
+### PJAX引入
+
+引入pjax文件
+```
+<script src="https://rce.ink/theme/docs/js/pjax.min.js"></script>
+```
+pjax实现：
+
+```javascript
+$(function() {
+        var pjax = new Pjax({
+          selectors: [
+            "title",
+            "meta[name=description]",
+            ".the-header",
+            ".the-content",
+            ".the-sidebar",
+            "#article",
+          ]
+        })
+        $(document).on("pjax:send", function() {
+            $("#article").hide();
+            $("#article").fadeTo(200,0.0);
+        });
+        $(document).on("pjax:complete", function() {
+            init();
+            $("#article").fadeTo(300,1);
+            $("#article").show();
+            anchorContent();
+            makeimg();
+        });
+});
+```
+
+SELECTORS中写需要局部刷新的dom元素，两个方法分别设置加载的效果和重载js方法。
+
+备份一下jquery-pjax的方法：
+
+```
+// $(function() {
+//     $(document).pjax("a[target!=_blank]", "#article", {fragment:"#article", timeout:6000});
+//         $(document).on("pjax:send", function() {
+//             $("#article").hide();
+//             $("#article").fadeTo(200,0.0);
+//         });
+//         $(document).on("pjax:complete", function() {
+//             init();
+//             $("#article").fadeTo(300,1);
+//             $("#article").show();
+//             anchorContent();
+//         });
+// });
+```
+### LightBox引入
+
+```text
+<script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
+ <link href="https://rce.ink/theme/docs/css/lightbox.css?v=123" rel="stylesheet">
+```
+
+jquery方法：
+
+```javascript
+function makeimg(){
+    
+    var articleElement = document.getElementById('article');
+    var imgTags = articleElement.getElementsByTagName('img');
+        for (var i = 0; i < imgTags.length; i++) {
+          var imgTag = imgTags[i];
+          var aTag = document.createElement('a');
+          aTag.className = 'example-image-link';
+          aTag.href = imgTag.src;
+          aTag.setAttribute('data-lightbox', 'example-set');
+          var newImgTag = document.createElement('img');
+          newImgTag.src = imgTag.src;
+          aTag.appendChild(newImgTag);
+          imgTag.parentNode.replaceChild(aTag, imgTag);
+        }
+}
+```
+只需要修改article为你文章内容的id即可，然后记得在pjax中配置回调函数makeimg()在complete后调用即可。
+
+本站完美解决此问题</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

@@ -1,19 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+
+
+<!doctype html>
 <html lang="zh-cn" >
 <head>
     <meta charset="utf-8">
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link href="https://rce.ink/theme/docs/css/bootstrap.min.css?v=6931" rel="stylesheet">
-    <link href="https://rce.ink/theme/docs/css/main.css?v=4716" rel="stylesheet">
+    <link href="https://rce.ink/theme/docs/css/bootstrap.min.css?v=8280" rel="stylesheet">
+    <link href="https://rce.ink/theme/docs/css/main.css?v=3525" rel="stylesheet">
     <script src="https://rce.ink/theme/docs/js/jquery.min.js"></script>
-    <script src="https://rce.ink/theme/docs/js/bootstrap.min.js?v=7481"></script>
-    <script src="https://rce.ink/theme/docs/js/functions.js?v=3085"></script>
+    <script src="https://rce.ink/theme/docs/js/bootstrap.min.js?v=4094"></script>
+    <script src="https://rce.ink/theme/docs/js/functions.js?v=8141"></script>
     <script src="https://rce.ink/theme/docs/js/marked.min.js"></script>
-    <link href="https://rce.ink/theme/docs/css/doc.css?v=8832" rel="stylesheet">
-    <link rel="stylesheet" href="https://rce.ink/assets/editor/editormd/css/editormd.css?v=6707" />
+    <link href="https://rce.ink/theme/docs/css/doc.css?v=4299" rel="stylesheet">
+    <link rel="stylesheet" href="https://rce.ink/assets/editor/editormd/css/editormd.css?v=6567" />
     <script src="https://rce.ink/assets/editor/editormd/editormd.js"></script>
     <script src="https://rce.ink/assets/editor/editormd/lib/marked.min.js"></script>
     <script src="https://rce.ink/assets/editor/editormd/lib/prettify.min.js"></script>
@@ -23,16 +24,13 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=8897" rel="stylesheet">
-	
-    <title>Depy's docs</title>
-
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑 额外配置 - Depy's docs</title><li><a href="/view/91.html">📑 额外配置</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
 
 
-        <nav class="navbar navbar-expand-lg navbar-light shadow-sm bg-white mybt2 sticky-top">
+             <nav class="navbar navbar-expand-lg navbar-light shadow-sm bg-white mybt2 sticky-top">
         <div class="container-fluid" style="max-width:1332px;">
             <a class="navbar-brand" href="/"><b class="">Depy's docs</b></a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,8 +41,8 @@
                     <li class="nav-item active">
                         <a class="nav-link" href="/" >首页</a>
                     </li>
-                </ul>
 
+                </ul>
 
             </div>
         </div>
@@ -53,18 +51,14 @@
 
 <main>
 
-<aside class="sidebar">
 
-        <div class="sidebar-nav mt-2">
+<aside class="sidebar">
+           <div class="sidebar-nav mt-2">
             <ul>
 
                 
 
-                <li>
-
- 
-                </li>
-
+                
 
 
 <li> <p>测试笔记</p>
@@ -128,21 +122,115 @@
         <div class="d-flex"> 
 
 
-            
-            <article class="markdown-section" id="main">
+           
+            <article class="markdown-section" id="main" style="word-break:break-all;">
+                
                 <div>
-                    <h1>😯 文档介绍</h1>
+                <h1>📑 额外配置</h1>
+
+                
+                <a style="font-size:12px;color: #5f5d5d;">密级: 
+                
+                                【<span style="color:green">C-1</span>】
+                                 
+                
+                | 时间: | 目录:DepyDocs </a> 
+                
+                | 
+                <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
+                <br>             
+                                
+
+                    <div id="content"><textarea style="display: none;">## 参数表
+| key  | val  |  备注 |
+| ------------ | ------------ | ------------ |
+|  ipRestrictions | 127.0.0.1,127.0.0.2  |  英文逗号分隔，代表网站访问白名单,为空则为不限制 |
+|  NCM | 随意  |  限制中国大陆、港澳台用户访问。优先级高于ipRestrictions，此配置项可能不定期失效，或拦截异常。PS:本配置项仅适用于面向海外展示时，做境内流量过滤，请勿用于发布涉政等非法信息以逃避监管，对开启此配置项用户会定期做内容审查。 |
+|  watermark | 水印值  |  站点水印,非空开启。前端自定义val，并支持dom元素检测缓解水印绕过 |
+|  approvetime | 加密文章阅读时间  |  整数，为空时默认300秒 |
+|  links | 友情链接  |  json数组,见下方示例 |
+|  version | 文章版本管理  | true/false（普通租户不支持进行操作，强制开启） |
+|  openapi | 127.0.0.1,127.0.0.2  | 英文逗号分隔，代表openapi调用白名单,无法为空。 |
+
+## 租户配置方法
+
+![](https://img.meituan.net/imgupload/8419a3486c0bfb698fe52464f7cce6ba97389.png)
+
+## 友情链接json
+
+```
+[{"name":"depy's blog","link":"https://rce.ink"},{"name":"depy's githu","link":"https://rce.ink"},{"name":"depy's blog","link":"https://rce.ink"}]
+```</textarea></div>
+                <script>
+                   $(function () {
+                        //通过editor.md渲染内容
+                        editormd.markdownToHTML("content");
+                    })
                     
+                </script>
+
+
+                                
+
+                </div>
+
+                <hr>
+                评论列表
+                <!-- 评论列表 -->
+                <div id="comment-list" class="">
+
+                    
+                    
+                    
+
+                </div>
+
+
+                <div class="mt-3 d-flex align-items-center justify-content-end">
+                    <!-- <span class="mr-2 f14 text-secondary mt-2">编辑于2021-12-07 15:51:46</span> -->
+                    <a type="button" id="toggleButton" style="color:#fff" rel="nofollow" class="btn btn-primary btn-sm mt-2">
+                        写评论
+                    </a>
+                </div>
+
+                <!-- 输入评论 -->
+                <div class="replies mt-4" style="display: none;" id="replies">
+                    <div class="card">
+                        <div class="card-body py-0 px-3">
+                            <ul class="list-group list-group-flush reply-list">
+                                <li class="list-group-item text-center px-0 my4 text-secondary no-reply">
+                                    <small>您的IP:,临时用户名:18c428cb<br>评论已接入DepyWAF审计与流量系统,请勿频繁操作导致IP拉黑</small>
+                                </li>
+                                                                                </ul>
+                        </div>
+
+                                                                    <div class="card-body p-3 border-top">
+                            <div>
+                                <textarea autoheight="true" id="comment" class="form-control form-control-sm reply-textarea" rows="1" placeholder="撰写评论 ..." name="text"></textarea>
+                            </div>
+                            <div class="mt-y d-flex align-content-center justify-content-end">
+                                <input id="verify" class="form-control mt-3 mx-4" style="width: 100px" type="search" name="verify" placeholder="code" value="" autocomplete="off">
+                                <div style="margin-top:20px" id="verifypic"><img width="10%" src="data:image/png;base64,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"></div>
+                            </div>
+                            <a id="key" data="65bdfe43b60f2"></a>
+                            <a id="view_id" data="118"></a>
+                            <div class="mt-y d-flex align-content-center justify-content-end">
+                                <button type="button" id="submitComment" submit-type="reply" class="btn btn-primary btn-sm mt-3">
+                                    提交评论
+                                </button>
+                            </div>
+                        </div>
                         
-                <h2>关于</h2><p>本站由DepyDocs驱动,主题为Docs，一个由Depy纯自研的文档管理平台。目前静态化托管于Github Pages。</p><p>本站用于整理记录本人的日常笔记、学习记录，而不发表于博客首页。</p><p>后续博客文章将以站外链接的形式跳转至本站，防止文章数据冗余。XD</p><h2>版权声明</h2><p>本站读书笔记中的内容，均由本人摘抄记录所得，我只是一个整理与阅读者。</p><p><span style="font-size: 1em;">内容观点非本人创造，如有转载请声明原作者与地址，保护原创作者权益。</span><br/></p><h2>加密文章浏览</h2><p>加密文章用于保护一些未公开的知识与技术，审批功能仅方便定向授权阅读。</p><p><span style="font-size: 1em;">请勿发起申请，来路不明的工单并不会审批通过。</span><br/></p><h2>更新日志</h2><p>查看DepyDocs服务的更新日志，<a href="https://docs.rce.ink/view/?view_id=88" target="_blank">点击</a></p></div>
+                    </div>
+                </div>
+
+                <hr><div>
 
 
-                <button type="button" id="toggleButton" submit-type="reply" class="btn btn-primary btn-sm mt-3" style="display:none">
-                    提交评论
-                </button>
-                <button type="button" id="submitComment" submit-type="reply" class="btn btn-primary btn-sm mt-3" style="display:none">
-                    提交评论
-                </button>
+
+                    <h5>© 版权声明：非标注『转载』情况下本文为原创文章，版权归&nbsp;<a href="http://192.168.100.192:5080">Depy's docs</a>&nbsp;所有，转载请联系博主获得授权。</h5>
+                    
+                </div>
             </article>
 
             
@@ -165,9 +253,10 @@
     
 </main>
 
-<link href="https://rce.ink/theme/docs/css/prettify.css?v=2308" rel="stylesheet">
-<script src="https://rce.ink/theme/docs/js/prettify.js?v=4061"></script>
-<script src="https://rce.ink/theme/docs/js/view.js?v=1455"></script>
+<link href="https://rce.ink/theme/docs/css/prettify.css?v=5530" rel="stylesheet">
+<script src="https://rce.ink/theme/docs/js/prettify.js?v=5764"></script>
+<script src="https://rce.ink/theme/docs/js/view.js?v=4125"></script>
+
 
         
 <script>
@@ -278,4 +367,4 @@ addwm();
 </script>
         
 </body>
-</html> 
+</html>

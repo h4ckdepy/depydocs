@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>🔧 轻量级CI/CD+文件内容监控/防篡改解决方案 - Depy's docs</title><li><a href="/view/115.html">🔧 轻量级CI/CD+文件内容监控/防篡改解决方案</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>🔧 轻量级CI/CD+文件内容监控/防篡改解决方案</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,97 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:测试笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 前言
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+购买高性能群晖后，我将GIT仓库部署到了线下的Docker容器。通过NPC内网穿透到腾讯云的轻量服务器中，使用反向代理就能在外网用域名访问了。速度测试其实还行，能够达到4-5mb每秒的拉取速度。这里面踩了一些坑，都是和反向代理的特性有关，这里就不赘述了。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+GIT不只是用来存放代码的，如果是这样那还不如用Github。一开始想着使用jenkins这样的框架去做自动化的构建发布，后来发现这并不适合我的场景。
+
+这是因为我的很多代码的增加修改，都是在生产环境线上操作增加了代码。例如提交生成代码指令做自动化CRUD表单构建，这是非编译语言PHP带给我的好处，让我能够即时更新生产环境的代码并生效。2024了，不会还有人不用好用的低代码平台吧😀。
+
+所以基于这个原因，我没有找到很轻量易懂的解决方案，干脆自己想了一个架构。
+
+## 架构图
+
+使用组件列表：
+
+群晖侧
+1、Mysql（用于gogs数据库+线上平台数据库）
+2、gogs 轻量级代码仓库，支持webhook
+反代服务器侧
+1、Un1kAPI Agent
+2、Un1kAPI Server
+3、Nginx （用于反向代理与内网穿透）
+4、Ansible （用于下发指令给业务服务器）
+业务服务器侧
+1、业务容器
+
+### C2B 
+![](https://img.meituan.net/imgupload/a4b527a9c75b8cf3d15a9d54c30a2fb797566.png)
+
+基础检查是架构的关键，当仓库被其他原因恶意push时，例如想push木马文件进入仓库，线上同步的话就倒霉了，非编译型语言就是有这个弱点。所以我目前初版做的操作是，禁止public目录下的任何黑名单文件推送（无法通过agent的安全检查），并且推送同步记录至我的微信，如果我点击拒绝会直接回滚同步前一个节点的内容并锁定仓库的push权限。
+
+### B2C
+
+![](https://img.meituan.net/imgupload/bacf4d85d90ee55f8e2dcbba2cffd92589569.png)
+
+探针持续监控文件变化，排除.gitignore中标记的目录。基础检查通过后进行仓库代码同步，由于产生php文件的合理时机只有crud表单生成，此时文件名、结构代码会与数据库中有对应关系，需要做一层数据库对照的检测。
+
+在agent的控制平台配置了重点监测的文件，遇到此类文件更新需要做内容审查，遇到删除操作需要仓库所有者审批。同样如果仓库所有者点击拒绝会直接回滚变化前的节点的内容，并锁定网站目录的代码新增权限（除了runtime目录，防止线上无法生产）。
+
+## 效果
+
+实际上是1秒内的快速同步，截图无法体现 😀 全程只在客户端或者服务器做单向操作。
+
+### c2b同步
+
+#### 增加文件
+![](https://img.meituan.net/imgupload/251c56124a5e4b6f4310ee7bb880d2b53744.png)
+
+仓库同步
+
+![](https://img.meituan.net/imgupload/f72592564fb0d288a36a35961b68761d20820.png)
+
+![](https://img.meituan.net/imgupload/07d14339657f76012b08ac0d68d4b54e25063.png)
+
+#### 删除文件
+
+![](https://img.meituan.net/imgupload/548c1469c4e5f0d5e05790656b2d7dbb9747.png)
+
+![](https://img.meituan.net/imgupload/891c8622002fe1f94c63817b3d63fb1b39073.png)
+
+### b2c同步
+
+#### 修改文件
+![](https://img.meituan.net/imgupload/986d97e41b276bc02d4d1476cec43d8141488.png)
+
+提交push后，直接访问线上。
+
+![](https://img.meituan.net/imgupload/bda3342ad19458b286c0b99117bb2dee9451.png)
+
+#### 删除文件
+
+![](https://img.meituan.net/imgupload/75b13caeac6c2251297b926f3b2cdc7638818.png)
+
+![](https://img.meituan.net/imgupload/bc1581889123dede9132a2cf89565e6d8426.png)
+
+### 新增文件
+
+![](https://img.meituan.net/imgupload/899b4f1e8e5a04520f65ccb0363f88d321280.png)
+
+![](https://img.meituan.net/imgupload/6cc1328d2982b1fc8fbb50033812599f6582.png)
+
+
+## 源码
+
+//todo</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

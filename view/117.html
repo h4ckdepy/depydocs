@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📚《深入探索安卓热修复技术原理》32 - - Depy's docs</title><li><a href="/view/117.html">📚《深入探索安卓热修复技术原理》32 -</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📚《深入探索安卓热修复技术原理》32 -</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,117 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:读书笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 你所不知道的java
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+### 内部类编译
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+热修复修改外部类的某个方法逻辑为访问内部类的某个方法，补丁包会提示新增一个方法。内部类在编译期间会编译为跟外部类一样的顶级类。
+
+![](https://img.meituan.net/imgupload/4cde487d8441ad4b5a7c5f87a8502c8464731.png)
+
+![](https://img.meituan.net/imgupload/5ad23408998b0cfe50f3c3aaf1cb7363507711.png)
+
+### 非静态内部类与静态内部类区别
+
+非静态内部类会自动持有一个对其外部类实例的引用。这意味着，只要内部类的实例存在，外部类的实例也不会被垃圾回收器回收，因为它被内部类实例所引用。非静态内部类可以直接访问外部类的所有成员，包括私有成员。
+
+静态内部类（也称为嵌套类）不会持有对外部类实例的引用。这意味着静态内部类可以独立于外部类的实例存在。静态内部类只能直接访问外部类的静态成员和静态方法。
+
+在Android开发中，Handler常用于处理异步消息。如果Handler是非静态内部类，它会隐式持有一个对其外部类（通常是Activity或Fragment）的引用。当Activity需要被销毁时，由于Handler作为非静态内部类持有Activity的引用，这可能阻止Activity的实例被垃圾回收器回收，从而导致内存泄漏。
+
+为了避免内存泄漏，建议将Handler实现为静态内部类，并使用弱引用（WeakReference）来引用外部类的实例。通过使用弱引用持有外部类实例，即使Handler的消息队列中还有未处理的消息，垃圾回收器也可以在需要时回收外部类的实例，因为弱引用不会阻止垃圾回收。
+
+### 内部类和外部类互相访问
+
+由于编译后都是顶级类，如果需要访问private修饰的属性和方法，编译时会自动生成access&xx的的相关方法，供顶级/内部类调用。这样会导致类结构发生变化了。
+
+### 热部署解决方法
+
+为了不增加类，走热部署。所以需要阻止access&xx的方法生成，需要满足两个条件
+1、外部类如果有内部类，把所有方法/属性的private修改成protected，public或者默认访问权限
+2、内部类把所有方法/属性的private修改成protected，public或者默认访问权限
+
+### 匿名内部类编译
+
+命名格式 外部类&numble，numble根据匿名类出现的先后关系依次累加命名。
+
+![](https://img.meituan.net/imgupload/ba61d5a3a4fff281bfbb6d78c457eb5169989.png)
+
+修复后增加了一个xx.onClickListener这样一个内部匿名类，内部名时 DexFixDemo&1，取代了之前的..Thread这个匿名类。这样就变了类的结构了，完全乱套了。减少也存在这样的问题，所以新增/减少匿名内部类对热部署时无解的。补丁拿到的class文件，无法区分DexFixDemo&1和DexFixDemo&2。所以要避免插入一个新的匿名内部类，但是**插入到外部类的结尾**是可以的。（因为匿名内部类会以顶级类形式存在.class，所以根据匿名内部类编号追加即可，不会改变现有匿名类的定义和结构）
+
+在热修复的语境中，保持类结构不变通常指的是不改变现有的公共API，即不改变现有的方法签名、字段等。这是因为这些改变可能会导致与现有代码的不兼容。在热修复的上下文中，关键的考量是是否会影响已有代码的正常运行，而不仅仅是类文件的物理结构。
+
+
+### 静态field，非静态field编译
+
+不支持<clinit>的修复。这个方法会在Dalvik虚拟机中类加载时进行类初始化时候调用。java本身不存在<clinit>方法，静态field的初始化和和静态代码块实际上编译在<clinit>这个方法。对于已经在<clinit>方法中初始化的final static字段，JVM不支持在运行时进行修改。这是因为<clinit>方法只在类加载时执行一次，之后不会再被触发，因此final static字段在运行时被视为不可变。
+
+![](https://img.meituan.net/imgupload/89ff52a679a3ad3b39be9fc24189580c107404.png)
+
+静态代码块和静态域初始化在clinit中的先后关系就是在源码中的先后关系。以下三种情况会尝试去加载一个类：
+
+1、new一个类的对象
+2、调用类的静态方法
+3、获取类的静态域的值
+
+final static域首先是一个静态域，自然会认为由于被翻译到clinit方法中，热部署无法变更。但是修饰的基本类型/String 常量类型没有被翻译到clinit方法中。
+
+![](https://img.meituan.net/imgupload/620b4e6c27fbce30b790b56dc8af378d58599.png)
+
+修改final static基本类型或者String类型域（非引用）由于编译期间引用到的基本类型的地方被立即数替换，引用到String类型（非引用类型）的地方呗常量池索引id替换，所以在热部署模式下，最终所有引用到该final static域的方法都会被替换，实际上此时仍然可以走热部署。修改final static 引用类型域是不允许的，因为这个field的初始化会被翻译到clinit方法中，没有办法走热部署。
+
+## 有趣的方法编译
+
+### 方法内联
+
+项目启用混淆，可能会导致方法的内联和裁剪。导致method的增加或者减少。
+
+几种可能导致方法被内联：
+
+1、方法没有被任何地方引用
+2、方法足够简单，任何调用该方法的地方会被该方法的实现替换
+3、方法只被一个地方引用到，这个地方会被方法的实现替换掉。
+
+如果恰好将要patch的一个方法，调用了只被调用一次的方法。那么方法被调用了两次，就不会被内联了，就会新增了一个方法，只能走冷启动方案了。
+
+### 方法裁剪
+
+![](https://img.meituan.net/imgupload/41c80760ce838c37bbf1d85f467bf77d50010.png)
+
+如果方法没有调用某个参数，则参数会被裁剪，混淆任务首先生成test$faab20d()裁剪过后的无参方法，再进行混淆。如果要patch该test方法，恰好用到了context参数，那么context参数不会被裁剪，补丁会发现新增了test(Context)方法，只能走冷启动方案。
+
+如果需要参数不被裁剪，就需要让编译器优化时认为它不是一个无用的参数。
+
+![](https://img.meituan.net/imgupload/59784bf3f8fc4790542528f069a29c3631803.png)
+
+这里不能用基本类型false，不然可能也会被优化掉。
+
+### 混淆下的热部署解决方案
+
+实际上只要混淆配置文件加上 -dontoptmimize就不会做方法的裁剪和内联。
+
+### switch-case编译
+
+资源热部署的方案中，要做新旧资源id替换。但是存在switch-case中，id不被替换的情况。
+
+如果case的值是连续的几个相近的值，编译期会被翻译成packed-switch指令，连续数的中间差值用:pswitch_0补齐。不连续的翻译成sparse-switch指令，怎么才算连续的case由编译器决定。在某些编程语言或字节码中，如Dalvik字节码（Android的虚拟机），packed-switch是一种专门用于处理switch-case语句的指令。它用于优化连续整数值的switch语句，通过索引直接跳转到对应的case，而不是一一比较
+
+热部署解决方案：
+
+一个资源id肯定是const final static常量，如果此时恰好被翻译成packed-switch指令，就会出现资源id替换不完全。修复方案就是做指令强转，再编译smali到dex。需要经过 反编译->资源id替换->回编译。
+
+### 泛型编译
+
+泛型使用，导致method新增。泛型基本上完全在编译器中实现。
+
+编译器执行类型检查和类型推断，生成普通的非泛型的字节码，就是虚拟机完全无感知泛型的存在。实现技术称为擦除，编译器使用泛型类型信息保证类型完全，生成字节码之前将其擦除。</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑【NDK开发】基础环境搭建 - Depy's docs</title><li><a href="/view/70.html">📑【NDK开发】基础环境搭建</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑【NDK开发】基础环境搭建</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,109 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:编程开发 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 环境安装
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+官网Android Studio一把梭，务必使用非中国大陆代理后下载dl.google.com上的一些依赖，不然你会痛苦。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+## 前置知识
+
+此前研究过webview和java层进行通信的方式，在美团这个叫做knb。与之类似更底层的就是JNI，NDK工具使咱们能够在 Android 应用中使用 C 和 C++ 代码，它提供了众多平台库，我们可使用这些平台库管理原生 activity 和访问实体设备组件，例如传感器和触控输入。
+
+为了应用的安全性，会将一些复杂的逻辑和算法通过本地代码（C或C++）来实现，然后打包成.so动态库文件，并提供 Java 接口供应用层调用，这么做的目的主要就是为了提供应用的安全性，防止被反编译后被不法分子分析应用的逻辑。
+
+
+## 基础文件目录
+
+### Cmake.list
+
+![](https://p0.meituan.net/xianfu/4776ecd2dda9446aa1f21fbc397efca465724.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+第一行指定所需的 CMake 最低版本。
+第二行设置项目名称为 "a****"。
+第三行添加一个名为 ${CMAKE_PROJECT_NAME} 的共享库，并将源文件 native-lib.cpp 和 native_depy.cpp 添加到该库中。这些源文件将被编译为共享库。
+第四行指定链接到 ${CMAKE_PROJECT_NAME} 库的其他库。在这里，${CMAKE_PROJECT_NAME} 库将链接到 Android NDK 提供的 android 库和 log 库。这样编译生成的libaa会引用包含android和log两个库。
+
+### com/example/a2023110803/MainActivity.java
+
+```java
+package com.example.a2023110803;
+import androidx.appcompat.app.AppCompatActivity;
+import android.os.Bundle;
+import android.widget.TextView;
+import com.example.a2023110803.databinding.ActivityMainBinding;
+
+
+public class MainActivity extends AppCompatActivity {
+
+    static {
+        System.loadLibrary("aa");
+    }
+
+    private ActivityMainBinding binding;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        TextView tv = binding.sampleText;
+        tv.setText(xxjni());
+    }
+
+    public native String xxjni();
+
+    public native String testJNI();
+}
+```
+
+代码中定义两个native函数，xxjni()和testjni()。我们可以通过jni调用这两个方法。
+在onCreate的最后两行，我们调用了xxjni()方法，并通过TextView的setText方法把返回值设置在屏幕上。
+
+### native_depy.cpp
+
+在cmake.list中我们定义了一个共享库，会把native_depy.cpp和另一个cpp文件添加到库中。java代码最终调用时，也是调用cpp里定义的函数。
+
+代码如下：
+
+```cpp
+#include <jni.h>
+#include <string>
+
+extern "C" jstring
+Java_com_example_a2023110803_MainActivity_xxjni(JNIEnv *env,jobject) {
+    std::string hello = "a222nother";
+    return env->NewStringUTF(hello.c_str());
+}
+```
+
+在这个声明函数的代码中，使用了 extern "C" 关键字。这是因为 C++ 支持函数重载，而 Java 不支持函数重载。为了能够在 C++ 中定义一个可以被 Java 调用的函数，需要使用 extern "C" 来告诉编译器按照 C 语言的规则进行函数命名和调用约定。
+
+通过jstring这个JNI 中的数据类型，表示一个 Java 字符串。
+
+函数声明做了静态绑定，需要java+包名+函数名的方式，同时默认带有两个参数。JNIEnv 是一个指向 JNI 环境的指针，jobject 是一个代表调用该函数的 Java 对象的指针。方便c++从java层调用方法或者获取数据。
+
+std::string hello = "a222nother";: 在 C++ 中创建一个字符串变量 hello，并赋值为 "a222nother"。
+return env->NewStringUTF(hello.c_str());: 使用 JNI 环境的 NewStringUTF 函数将 C++ 字符串转换为 Java 字符串，并返回给 Java 端。
+
+## 编译测试
+
+![](https://p0.meituan.net/xianfu/6a2529dfbdd601580b3ed35b34997c2269860.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+设置过滤，只编译arm64。（删除会编译多个平台libso，但是目前够用）
+点击build->rebuild project ，在outputs ->debug目录下得到一个apk。
+
+![](https://p0.meituan.net/xianfu/97dc161e82cff23a5690622ebfe8b121114047.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+解压后就能看到编译好的so文件了。</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

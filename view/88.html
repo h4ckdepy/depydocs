@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑  更新日志 - Depy's docs</title><li><a href="/view/88.html">📑  更新日志</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑  更新日志</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,110 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:DepyDocs </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 更新日志
+2024-2-1
+	增加：文档差异diff，示例：https://rce.ink/index/diff/index?old=OGXcGjj-88
+	修复：文章下架可获取版本树的越权漏洞
 
+2024-1-30
+	增加：文档版本管理功能。（重大更新超好用，租户可对所有文章手动进行一次更新以保存ROOT版本）
+1、此刻开始，所有的文章编辑、添加都会进行版本管理。
+2、旧版文章（ID=126之前）需要手动进行一次更新才会添加一个ROOT版本。后续文章创建时就会添加完毕，可追溯所有时间节点编辑的内容，且无法被租户更改，防止租户对内容断章取义。
+3、若文章存在历史/新版本，会在title下出现“上/下一版本”。每个版本均会对应一个父版本，直到找到ROOT版本。
+4、不带version字段为最新版本内容
+5、加密文章无法进行版本级别的阅读。
+
+2024-1-29
+	增加：评论功能。
+1、评论内容经过内容安全审计与过滤，若恶意留言将会拉黑IP，租户恶意展示会自动封锁账户进入异常状态。
+2、仅收集访客IP信息。
+	
 2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+	修复：水印在lightbox下失效问题
+	修复：个人信息控制器未增加强制更新缓存逻辑
+	添加：图床图片暗水印（水印值为额外配置中的value）
+	
+2024-1-22
+	新增：租户后台添加文章标题模糊搜索，感谢建议。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+2024-1-11
+	调整：数据库迁移容器，站库分离。
+
+2024-01-11
+	修复：租户反馈审批接口被腾讯误封，已快速切换备份节点恢复功能。（2024-01-12已解封，接口切回）
+
+2024-01-02
+	计划：数据库、网站迁移至线下群晖docker容器，线上机器做备份负载。（效果不佳2024-01-14决定放弃）
+
+2024-01-01
+	新年快乐
+	修复：目录TOC过长无法滑动的前端bug
+
+2023-12-29
+	负载均衡：后端节点服务器三台（香港、新加坡、日本），通过主服务器实现负载均衡。
+	新增：友情链接额外字段
+
+2023-12-23
+	新增：租户额外配置-加密文章阅读时长，租户可自定义加密文章审批通过后的阅读时间啦~😀
+
+2023-12-17
+	新增：使用Redis以缓存租户信息、配置、文章数据，响应速度提升50%
+	优化：大量重复冗余代码逻辑
+	更换：DepyDocs线上平台容器化
+
+2023-12-15
+	新增：RSS订阅功能，路由/rss（显示最近10篇文章内容，并做加密保护）
+
+2023-12-10
+	调整：时光机页面模板同步
+	调整：不再对非域名绑定租户进行功能兼容，后续会进一步收缩支持，强制绑定，如遇错误请进行自定义域名绑定
+
+2023-12-09
+	新增：额外配置（IP限制、区域限制、水印）
+	优化：404界面显示，剔除服务端敏感信息
+
+2023-12-04
+	修复：🙅‍一处越权漏洞
+
+2023-12-03
+	添加：文章快速编辑 
+	支持：EMOJI存储 😀
+
+2023-12-02
+	添加：文章超期提示（三月超期）
+	切换：图床接口(原图床已风控,图片数据不会丢失)
+
+2023-11-16
+	添加：文章密级字段（企业私有化部署的文档密标）
+
+2023-11-17
+	添加：TOC滚动高亮
+
+2023-11-16
+	添加：lightbox.js 
+	更改：pjax实现方式以兼容图片灯箱
+
+2023-10-16
+	添加：自助域名申请服务
+
+2023-10-14
+	添加：阅读审批功能(支持端对端加密)
+
+2023-10-12
+	添加：Markdown写作支持粘贴图片至图床功能
+
+2023-10-10
+	添加：前端Pjax实现
+
+2023-10-08
+	 基础框架完善</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

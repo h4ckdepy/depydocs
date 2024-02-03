@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>🍯 有用的命令备份 - Depy's docs</title><li><a href="/view/105.html">🍯 有用的命令备份</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>🍯 有用的命令备份</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,108 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:测试笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 腾讯云卸载agent
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+Yunjing 卸载
+```bash
+wget -qO- https://raw.githubusercontent.com/littleplus/TencentAgentRemove/master/remove.sh | bash
+```
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+Tat卸载
+```bash
+curl https://tat-gz-1258344699.cos.ap-guangzhou.myqcloud.com/tat_agent_linux_x86_64.zip -o 1.zip 
+```
+解压后运行uninstall.sh
+
+![](https://img.meituan.net/imgupload/e28d20b32e6c0ae9fde62c3c24e02bb525366.png)
+
+
+## CERTBOT更新证书SOP
+*仅个人记录，方便复制命令 😀*
+
+### 安装certbot
+yum install certbot
+
+### 关闭容器
+docker stop container
+解除443端口占用
+
+### 执行命令
+
+certbot certonly --standalone -d auth.rce.ink
+
+### 新增域名 nginx配置
+
+#### 业务域名
+
+``` bash
+server {
+    listen 80;
+    listen 443 ssl http2;
+    server_name domain;
+    root "/app/domain/public";
+    index index.php;
+
+    if ($server_port !~ 443){
+        rewrite ^(/.*)$ https://$host$1 permanent;
+    }
+
+    ssl_certificate /ssl/domain/fullchain1.pem;
+    ssl_certificate_key /ssl/domain/privkey1.pem;
+
+    if (!-e $request_filename) {
+        rewrite ^/index.php(.*)$ /index.php?s=$1 last;
+        rewrite ^(.*)$ /index.php?s=$1 last;
+    }
+
+    include /opt/docker/etc/nginx/vhost.common.d/*.conf;
+}
+```
+
+#### 反代域名
+
+差别在于 无需包含额外的配置文件（业务域名需要转发流量至指定处理引擎，反代包含会导致location冲突错误）
+
+```bash 
+server {
+    listen 80;
+    listen 443 ssl;
+    server_name domain;
+    root "/app/domain/public";
+    index index.php;
+
+
+    if ($server_port !~ 443){
+        rewrite ^(/.*)$ https://$host$1 permanent;
+    }
+
+    ssl_certificate /ssl/domain/fullchain1.pem;
+    ssl_certificate_key /ssl/domain/privkey1.pem;
+
+    location / {
+        proxy_pass dest;
+        proxy_set_header Host dest_host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+}
+```
+
+## CI/CD SOP
+
+1、git init
+2、git config --global credential.helper store //后续只需要输入一次git密码
+3、git fetch --all 获取git仓库所有更新
+4、git reset --hard origin/master 用于将本地仓库的当前分支与远程仓库的master分支同步</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

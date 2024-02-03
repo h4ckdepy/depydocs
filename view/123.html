@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>🐑 某加密样本 Trace分析 - 2 - Depy's docs</title><li><a href="/view/123.html">🐑 某加密样本 Trace分析 - 2</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>🐑 某加密样本 Trace分析 - 2</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,58 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:测试笔记 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 基础信息
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+加密结果： 7fdf80a3bab0a71cc16aac6f71a9448e 
+可以在trace中找到md5魔数和k表。
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+## 找到明文入参
+
+之前的文章说过 
+
+![](https://img.meituan.net/imgupload/78922daf29b91903af43c97b8e39734857951.png)
+
+那么实际上 0xffffff进行 add运算时，可能就是第一轮运算的明文的第一个
+
+![](https://img.meituan.net/imgupload/b76f7799f7306cb9d54a8d9ec517c50e135026.png)
+
+说明 进行相加的明文的第一个分组的m[0] 是 0xfeedfacf
+
+![](https://img.meituan.net/imgupload/ad6353b25d62112d3b65c5c9905fcd91110022.png)
+
+谷歌能知道是Mach-O文件的魔数头
+
+```
+[0xd32e04c]	0x10e60604c	ldr w16, [x1];                	# r[ x1=0x11f4ac000, ] w[ x16=0xfeedfacf, ]
+[0xd32e050]	0x10e606050	str w16, [x0, #0x58];         	# r[ x0=0x17027a4c0, ] r[ x16=0xfeedfacf, ]
+```
+
+这条指令是一个加载指令，它从内存地址x1指向的位置加载一个字（word，32位）到寄存器w16中。
+
+x1的值为0x11f4ac000，指令执行后，w16被加载的值是0xfeedfacf。说明明文message来源在0x11f4ac000，找找线索。看到对0x11f4ac000进行数据装载操作的指令有大量的0填充。
+
+![](https://img.meituan.net/imgupload/3e234e35d4b286de1436db2eab5ca073212601.png)
+
+此处看到是feedfacf ，恰好是明文前几个字节。说明这个地址在开始进行明文填充，并加载到内存上了。一直到填充结束的位置。copy table到新的log文件，使用python正则匹配
+
+![](https://img.meituan.net/imgupload/e9352343a03db40ad736cfed345b0fe3281279.png)
+
+![](https://img.meituan.net/imgupload/4e51abaa2fc5a4cef6d989e2cc1aa9ea64375.png)
+
+使用cyberchef进行哈希，结果一致。证明md5没有做魔改
+
+![](https://img.meituan.net/imgupload/4c4cd543d788b46cea500ba4fc3fcedf108414.png)
+
+## 结论 
+
+样本在对Mach-O文件获取md5值。</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容

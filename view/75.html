@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Todo List - Depy's docs</title><li><a href="/view/118.html">Todo List</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑 IDA Debugger 调试器使用 - Depy's docs</title><li><a href="/view/75.html">📑 IDA Debugger 调试器使用</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -126,7 +126,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>Todo List</h1>
+                <h1>📑 IDA Debugger 调试器使用</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -134,30 +134,70 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:Todo </a> 
+                | 时间: | 目录:逆向分析 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="https://rce.ink/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">*本文已开启公众号自动消息Push提醒，以催促完成todo😀 *
+                    <div id="content"><textarea style="display: none;">## 基础环境启动
 
-2024-1-28
-- Hook框架demo编写
-- DepyDocs开发评论留言功能 ✔
-- trace分析作业 ✔
-- LD挖掘 ✔
-- 安卓漏洞模型整理 ✔
-- 信息提取插件开发(并通过AST分析参数关系）//搁置
-- DepyDocs文章版本控制管理 ✔
-- DepyDocs OpenAPI开发
+adb push
 
-2024-1-21 完成率75%,项目3已自动追加至新日期
-- trace分析作业 ✔
-- LD挖掘 ✔
-- Hook框架demo编写
-- 注入与HOOK相关知识学习 ✔</textarea></div>
+![](https://p0.meituan.net/xianfu/2e14f114512eb1b09cc7ea8f7bd75f9c274546.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+启动
+
+![](https://p0.meituan.net/xianfu/3800dbc8f3f8f1293a326a5ef718ef4c68115.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+转发调试端口 adb forward tcp:23946 tcp:23946
+
+![](https://p0.meituan.net/xianfu/ec25972cc14474089436caeb2d48b3b9419777.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+Remote Debugger 和 Local Debugger 不难理解。
+
+如果被调试程序（调试目标）和调试器处在同一个计算机系统里，这种调试关系就叫做本地调试（Local Debug），如果被调试程序（调试目标）和调试器分别位于不同的计算机系统中，这种调试方式就叫远程调试（Remote Debug)。
+
+我们这里就是 Remote Debug，而且具体类目是 Linux/Android。IDA 位于我们的本地电脑上，去调试 Android 设备，两者间通过 android_server64 实现通信和处理。
+
+![](https://p0.meituan.net/xianfu/8180df602fbe49be4e20adb2680059c9178394.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+点击debugger -> attach process 出现pid列表代表通信成功
+
+![](https://p0.meituan.net/xianfu/3863856b1fd34e65c0fe49143cc4defc493909.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+搜索自己的包名，attach进去。
+
+![](https://p0.meituan.net/xianfu/410ad0e7d20de6da8b52449fbbae62ba1671416.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+## 基础使用
+
+查看引用的模块
+
+![](https://p0.meituan.net/xianfu/e20d3c5004bcdec93669372ee906ebd7258167.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+这里我没有找到libun1ksec.so的module，是因为某种原因进行编译优化了。
+通过frida找到so的基地址，在maps中找到他所存在的模块：
+
+
+![](https://p1.meituan.net/xianfu/9ddc19d5e4e9e843ec1f76538cea8e5299833.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+![](https://p0.meituan.net/xianfu/b6798fc73df5b7f45e37a3f50281fcb4227859.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+双击打开此moudle，搜索之前的导出函数java_com_xxx，也没有找到。于是只能关闭debugger，找到此函数的偏移，按g jump过去。
+
+
+![](https://p0.meituan.net/xianfu/401b13803eeb2ab0b9a0fdcd3e850e43199587.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+按c 进行make code，按p进行make function。如图 我们看到了静态分析时候类似的伪代码：
+
+![](https://p0.meituan.net/xianfu/0363fbd1c92412686178392bf19c8f1b835210.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+
+在关键代码处下断点，手机apk点击触发get方法，此时断点情况如图所示：
+
+![](https://p0.meituan.net/xianfu/b8398e2ce2896dd0e2f636f90a56c3071533568.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容
