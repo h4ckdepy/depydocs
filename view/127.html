@@ -24,7 +24,7 @@
     
     
     <script src="https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>🌹 Dobby使用 - Depy's docs</title><li><a href="/view/111.html">🌹 Dobby使用</a></li>
+    <link href="https://rce.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>测试静态化自动部署Github - Depy's docs</title><li><a href="/view/127.html">测试静态化自动部署Github</a></li>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -130,7 +130,7 @@
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 
                 <div>
-                <h1>🌹 Dobby使用</h1>
+                <h1>测试静态化自动部署Github</h1>
 
                 
                 <a style="font-size:12px;color: #5f5d5d;">密级: 
@@ -138,55 +138,14 @@
                                 【<span style="color:green">C-1</span>】
                                  
                 
-                | 时间: | 目录:编程开发 </a> 
+                | 时间: | 目录:测试 </a> 
                 
                 | 
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.4:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>             
                                 
 
-                    <div id="content"><textarea style="display: none;">## 安装
-
-![](https://img.meituan.net/imgupload/7e424e745f32552feb01fb15d7bd1c5d22878.png)
-
-![](https://img.meituan.net/imgupload/4b35b21844d047d0b9907ce066c08bb64838.png)
-
-## 简单Hook
-
-```
-//指向原函数地址 方法名追加*oragin
-static jstring (*orgin_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI)(JNIEnv* env,jobject /* this */);
-
-// 代替的方法
-extern "C" JNIEXPORT jstring JNICALL
-new_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI(
-        JNIEnv* env,
-        jobject /* this */) {
-    std::string hello = "我被hook修改了";
-    return env->NewStringUTF(hello.c_str());
-}
-
-__attribute__((constructor)) static void ctor() {
-    // 构造函数 静态插入hook调用
-    // 原函数名
-    // 新函数地址
-    // 旧函数地址
-    DobbyHook((void *) DobbySymbolResolver(NULL, "Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI"), (void *) new_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI,(void **) &orgin_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI);
-}
-
-```
-
-在使用Dobby Hook之前，你需要定义一个指向原函数地址的函数指针，这样在hook函数中才能调用原函数。这里的方法名后加上origin_前缀，以区分原始函数和替代函数。
-
-DobbyHook使用DobbySymbolResolver，找到函数符号名后，第一个入参代表需要将函数转发到的新函数处理。第二个为原始函数指针。构造函数（在这里使用__attribute__((constructor))）会在加载共享库时自动执行。在构造函数中，你调用DobbyHook来设置hook。
-
-## 详解
-
-DobbySymbolResolver(NULL, "Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI"): 这个函数用于解析原始JNI函数的地址。NULL表示在当前进程的符号表中查找。
-
-new_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI: 这是你编写的替代函数的地址。
-
-&origin_Java_com_example_a2023110803_common_NativeFunctionUtils_stringFromJNI: 这是指向原函数指针的地址，Dobby会将原始函数的地址存储在这里，以便在替代函数中调用。</textarea></div>
+                    <div id="content"><textarea style="display: none;">123456</textarea></div>
                 <script>
                    $(function () {
                         //通过editor.md渲染内容
