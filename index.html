@@ -45,15 +45,6 @@
                     </li>
                 </ul>
 
-                <div class="my-2 my-lg-0 d-flex">
-                        <ul class="navbar-nav">
-                        <!-- <li class="nav-item dropdown">
-                                                        <a href="/tenantadmin" target="_blank" class="btn btn-primary">租户后台</a> 
-                                                        <!--<a class="btn btn-outline-primary" href="#暂未开放">租户注册</a>-->
-                                                        <a href="/tenantadmin/Tenantarticle/quickwrite" target="_blank" class="btn btn-outline-primary" href="#暂未开放">✍ 添加笔记</a>
-                                                    </li> -->
-                    </ul>
-                </div>
 
             </div>
         </div>
@@ -63,10 +54,6 @@
 <main>
 
 <aside class="sidebar">
-        <!-- <input id="keyword" class="form-control mt-3 mx-4" style="width: 200px" type="search" name="keyword" placeholder="全文&标题搜索" value="" autocomplete="off">
-        <div id="search-result" class="mt-1">
-
-        </div> -->
 
         <div class="sidebar-nav mt-2">
             <ul>
@@ -260,155 +247,9 @@ AutoJS 模拟贝塞尔曲线视频滑动</a></li>
     
 </main>
 
-<link href="/theme/docs/css/prettify.css?v=2308" rel="stylesheet">
-<script src="/theme/docs/js/prettify.js?v=4061"></script>
-<script src="/theme/docs/js/view.js?v=1455"></script>
-
-
-
-
-
-<script>
- 
-    // if('http://192.168.100.192:5080' != location.origin){
-    //     window.location.href="http://192.168.100.192:5080";
-    // }
-
-
-
-
-// function addmsg(){
-//     if(document.getElementById("addmsg").value == ''){
-//         document.getElementsByClassName("btn btn-outline-primary my-2")[0].innerHTML = '提交有误';
-//     }else{
-//         window.location.href = window.location+"&msg="+encodeURI(document.getElementById("addmsg").value);
-//     }
-// }
-
-
-// //搜索监听
-// $('input[name="keyword"]').on('keyup', ajax_search);
-// $('input[name="keyword"]').on('click', ajax_search);
-// function ajax_search() {
-//     if (ajax_search.lock) return;
-//     var keyword = $('#keyword').val();
-//     if (keyword == '') {
-//         $('#search-result').empty();
-//         return;
-//     }
-//     ajax_search.lock = 1;
-//     $.ajax({
-//                 url: 'http://192.168.100.192:5080/search/',
-//                 data: {keyword: keyword, step:200},
-//         success: function(e){
-//             ajax_search.lock = 0;
-//             $('#search-result').empty();
-//             var keyword_now = $('#keyword').val();
-//             if (keyword_now != '') {
-//                 $('#search-result').append(e);
-//             }
-//             if (keyword_now != keyword) {
-//                 ajax_search();
-//             }
-//         },
-//         error: function () {
-//             ajax_search.lock = 0;
-//         }
-//     });
-// }
- 
- 
-
-// function jsonp(url, _jsonp) {
-//   var script = document.createElement('script');
-//   script.src = url + '&_jsonp=' + _jsonp;
-//   document.body.appendChild(script);
-// }
- 
- 
-// function _jsonp(data) {
-//         // TO DO HERE
-// }
-
-
-// jsonp("https://rce.ink/index/index/clientcookie", 'handleResponse');
-
-
-</script>
-        
-
-<!-- <script>
-
-function submitComment(){
-    document.getElementById('submitComment').addEventListener('click', function() {
-    // 获取输入字段的值
-    var ip = "";
-    var user = "18c428cb";
-    var view_id = document.getElementById('view_id').getAttribute('data');  // 这应该是一个动态获取的值
-    var key = document.getElementById('key').getAttribute('data'); // 这应该是一个动态获取的值
-    var verifyInput = document.getElementById('verify');
-    var verify = verifyInput.value;
-    var comment =document.getElementById('comment').value;
-
-    // 构建请求的body数据
-    var data = {
-        "ip": ip,
-        "user": user,
-        "view_id": view_id,
-        "key": key,
-        "verify": verify,
-        "comment":comment
-    };
-
-    // 发送POST请求到指定的接口
-    fetch('https://rce.ink/index/tenantapi/addComment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if(data.code == "403"){
-            // var captchaDiv = document.getElementById('verifypic');
-            // // 获取div中的img元素
-            // var captchaImg = captchaDiv.querySelector('img');
-            // // 设置新的图片地址
-            // captchaImg.src = newSrc;
-            alert(data.msg);
-        }else{
-            alert(data.msg);
-            //刷新界面
-            window.location.reload();
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-});
-    }
-
-
-    function watchtoggleButton(){
-        document.getElementById('toggleButton').addEventListener('click', function() {
-        var repliesDiv = document.getElementById('replies');
-
-        // 检查内容当前的显示状态，并切换它
-        if (repliesDiv.style.display === 'none') {
-            repliesDiv.style.display = 'block'; // 显示内容
-            this.textContent = '关闭评论框'; // 更新按钮文本
-        } else {
-            repliesDiv.style.display = 'none'; // 隐藏内容
-            this.textContent = '写评论'; // 更新按钮文本
-        }
-    });
-    }
-
-    submitComment();
-    watchtoggleButton();
-
-</script> -->
+<link href="https://rce.ink/theme/docs/css/prettify.css?v=2308" rel="stylesheet">
+<script src="https://rce.ink/theme/docs/js/prettify.js?v=4061"></script>
+<script src="https://rce.ink/theme/docs/js/view.js?v=1455"></script>
 
         
 <script>
