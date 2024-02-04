@@ -1,0 +1,37 @@
+name: Sync Private Repository Every 5 Minutes
+
+on:
+  #手动触发
+  workflow_dispatch:
+
+jobs:
+  sync-private-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout current repo
+      uses: actions/checkout@v2
+
+    - name: Clone private Git repository
+      env:
+        GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+        GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+        GIT_REPO: ${{ secrets.GIT_REPO }}
+      run: |
+        # 克隆私有仓库到临时目录
+        git clone http://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO} temp_repo
+
+    - name: Copy new content to current repo
+      run: |
+        # 复制私有仓库的内容到当前仓库目录
+        cp -R temp_repo/* .
+        # 删除临时目录
+        rm -rf temp_repo
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Sync private repository content" || echo "No changes to commit"
+        git push
