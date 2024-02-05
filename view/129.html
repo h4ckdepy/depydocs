@@ -55,6 +55,28 @@
             <ul>
             <li>
 
+ <p>逆向分析</p>
+    <ul>
+<li><a href="/view/86.html">⚙️ 【Xposed 改机】- 基础环境安装</a></li>
+<li><a href="/view/81.html">💻 安卓内联汇编开发</a></li>
+<li><a href="/view/76.html">📑 JNI 使用基础</a></li>
+<li><a href="/view/75.html">📑 IDA Debugger 调试器使用</a></li>
+<li><a href="/view/74.html">💻 std::string内存布局</a></li>
+<li><a href="/view/73.html">💼 Frida作业-20231114</a></li>
+<li><a href="/view/65.html">🧮 JSVMP执行流程分析</a></li>
+    </ul>
+ <p>DepyDocs</p>
+    <ul>
+<li><a href="/view/122.html">📑 DepyDocs</a></li>
+<li><a href="/view/120.html">📑  Un1kMsg使用</a></li>
+<li><a href="/view/114.html">📑 联系方式</a></li>
+<li><a href="/view/91.html">📑 额外配置</a></li>
+<li><a href="/view/88.html">📑  更新日志</a></li>
+<li><a href="/view/72.html">📑 时光机使用</a></li>
+<li><a href="/view/66.html">📑 DepyOauth接入指南</a></li>
+<li><a href="/view/62.html">📑 官方域名申请</a></li>
+<li><a href="/view/47.html">📑 租户自定义域名绑定</a></li>
+    </ul>
  <p>Todo</p>
     <ul>
 <li><a href="/view/118.html">Todo List</a></li>
@@ -90,28 +112,6 @@
 <li><a href="/view/71.html">📑【NDK开发】NDK采集、压缩、加密传输设备信息</a></li>
 <li><a href="/view/70.html">📑【NDK开发】基础环境搭建</a></li>
     </ul>
- <p>逆向分析</p>
-    <ul>
-<li><a href="/view/86.html">⚙️ 【Xposed 改机】- 基础环境安装</a></li>
-<li><a href="/view/81.html">💻 安卓内联汇编开发</a></li>
-<li><a href="/view/76.html">📑 JNI 使用基础</a></li>
-<li><a href="/view/75.html">📑 IDA Debugger 调试器使用</a></li>
-<li><a href="/view/74.html">💻 std::string内存布局</a></li>
-<li><a href="/view/73.html">💼 Frida作业-20231114</a></li>
-<li><a href="/view/65.html">🧮 JSVMP执行流程分析</a></li>
-    </ul>
- <p>DepyDocs</p>
-    <ul>
-<li><a href="/view/122.html">📑 DepyDocs</a></li>
-<li><a href="/view/120.html">📑  Un1kMsg使用</a></li>
-<li><a href="/view/114.html">📑 联系方式</a></li>
-<li><a href="/view/91.html">📑 额外配置</a></li>
-<li><a href="/view/88.html">📑  更新日志</a></li>
-<li><a href="/view/72.html">📑 时光机使用</a></li>
-<li><a href="/view/66.html">📑 DepyOauth接入指南</a></li>
-<li><a href="/view/62.html">📑 官方域名申请</a></li>
-<li><a href="/view/47.html">📑 租户自定义域名绑定</a></li>
-    </ul>
 
 
 </li>
@@ -135,9 +135,9 @@
 
                     <div id="content"><textarea style="display: none;">## 前言
 
-前几天腾讯云一直告警，说是有异常udpflood流量，高达五十多G。一开始我以为只是针对The loner团队网站的，就没怎么管，也管不了。
+前几天腾讯云一直告警，说是有异常udpflood流量，高达五十多G。一开始我以为只是针对The loner团队网站的，就没怎么管，毕竟团队出名了就容易惹祸，我也管不了。
 
-但是过了一会公众号推送告警了，说是数据同步没同步上去。我顿时感到不妙，发现无法进入SSO了。虽然DepyDocs做了分布式部署，但是被打的是主服务器，后面有再多节点也没用。于是只能想想办法。
+但是过了一会公众号推告警了，说是GIT数据同步没同步上去。我顿时感到不妙，突然发现无法进入SSO了。虽然DepyDocs做了分布式部署，但是被打的是主服务器，后面有再多节点也没用。于是只能想想办法。
 
 ![](https://img.meituan.net/imgupload/da18370ca6b26d78d451ef6355e8b74340696.png)
 
@@ -145,43 +145,49 @@
 
 ![](https://img.meituan.net/imgupload/153f70c1026de4a361e6c9b0176798a16575.png)
 
-只有购买好几万的高防服务器才有自助解封次数，这里找了个腾讯云的bug，弄了几次，没有花钱。解除了之后，我看攻击类型是udpflood就对udp协议做了全端口禁止。
+问了客服，只有购买好几万的高防服务器才有自助解封次数。这里找了个腾讯云的bug，弄了十次，没有花钱。解除了之后，我看攻击类型是udpflood就对udp协议做了全端口禁止。
 
-但是过了几分钟，流量异常的消息又推送过来了。服务器又被隔离了，找客服投诉，客服说这是因为流量先进入的运营商，再到腾讯云，再到我自己这。那我这边做什么策略都没用。
+但是过了几分钟，流量异常的消息又推送过来了。服务器又被隔离了，找客服投诉，客服说这是因为流量先进入的运营商，再到腾讯云，再到我自己这。那我这边做什么策略都没用。只能买高防。
 
 一时不知道该干什么。
 
 ## 使用CDN
 
-既然进入服务器前的路径我无法控制。那我用cdn再转发到源站应该就行了吧？
+既然解析到IP后的路径我无法控制，那我用cdn再转发到源站应该就行了吧？
 
 用了一下几家的服务，腾讯云自己的边缘网络加速啥的，还有cloudflare自带的，效果都不咋样。还把我不多的解封次数用完了，弄得人非常疲惫。
 
-腾讯云的边缘加速36元一年，解析速度非常慢。我一个域名解析了过了半小时才生效，弄得人很生气，直接退款了。cloudflare太卡了，太影响体验了。
+腾讯云的边缘加速36元一年，解析速度非常慢。我一个域名解析了过了半小时才生效，弄得人很生气，直接退款了。cloudflare太卡了，太影响体验了，其他的或多或少cdn也会有流量限制，一下子就超阈值了。
 
 ## 静态化
 
-思考了很久，实在累了，玩不过老鼠人。还是掏出了压箱底的解决方案，全站静态化，第三方托管。
+那天实在累了，绝对玩不过老鼠人。还是掏出了压箱底的解决方案，全站静态化，第三方托管。关于这个想法，在我开发depydocs初期就想过。因为有些客户只想做文档站，写完托管到对象存储就行，也不太需要审批、评论这类交互的功能。所以当时就写过脚本来对站点数据静态化，一直没有派上用场。
 
-这个想法在我做depydocs初期就想过，有些客户只想做文档站。写完托管到站点就行，也不太需要审批这类交互的功能。所以当时就写过脚本来对站点数据静态化，一直没有派上用场。
+后续的模式就是，让家里的NAS成为发布后台，我连接上openvpn服务端，进行文档攥写。好处就是站点也不需要走sso了，内网的话直接访问就行，我的depysso可以休息一段时间了。
 
-后续的模式就是，让家里的NAS成为发布后台，连接上openvpn服务端，进行写作。好处就是站点也不需要走sso了，sso可以休息一段时间了。发布后，Un1kAgent自动静态化同步到私有文档仓库，然后github page异步通过action来同步私有仓库的数据到github page。
+内网文章发布、更新后，Un1kAgent自动静态化同步到私有文档仓库，然后主动触发Github Action来同步私有仓库的数据到github page，完成自动化托管全链路。
+
+![](https://img.meituan.net/imgupload/f52cb221a8d1f0e8c9a8f5a5d089730b171291.png)
 
 ![](https://img.meituan.net/imgupload/d593614bc8a4ed1e71cc3cd2609f091837015.png)
 
-action可以设置密钥，也不会泄露私有仓库的地址、账号和密码。为什么我不主动push呢？因为特么的github实在是太卡了，我还得专门为了加速配置别的，但是我的私有仓库地址是很流畅的，这样就省了很多事情。
+Github Action可以设置密钥，也不会泄露私有仓库的地址、账号和密码。为什么我不主动push呢？因为国内访问特么的github实在是太卡了，我还得专门为了加速配置别的，但是我的私有仓库地址是很流畅的，这样就省了很多事情。后续使用任何接口服务都内匿名一下，防止被老鼠人找到。
 
 
 ## 吐槽
 
-除了疑似自导自演的流量攻击外，还存在很多问题。回复不及时，搪塞等等.. 马总年会上骂你们骂的还不够狠吗？
+关于ddos的流量来源，除了老鼠人。还疑似是腾讯云自导自演。因为某个操作是购买一台新的轻量云，通过镜像重装，这个时候我还没有完成域名解析的步骤，过了会又说udpflood了。
+
+除此之外还存在很多问题。回复不及时，搪塞等等.. 马总年会上骂你们骂的还不够狠吗？
+
+还有就是删除用户解析，让我看操作日志，结果ip是美国国防部的。
 
 ![](https://img.meituan.net/imgupload/ee906bc9bc5508faf2ae6ad3390fd4c538402.png)
 
 ![](https://img.meituan.net/imgupload/663d2729144b40600059fe895275348c32465.png)
 
 
-还有ddos的老鼠人，祝你全家身体健康。</textarea></div>
+还有ddos的老鼠人，祝你全家身体~~健康~~。（XD）</textarea></div>
 
 
                 <script>
