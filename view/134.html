@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑 DepyDocs</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>某OA授权破解分析</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -130,55 +130,127 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>📑 DepyDocs</h1>
+                <h1>某OA授权破解分析</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2024-01-28 20:50:00| 目录:DepyDocs </a>
+                | 时间: 2024-02-05 23:09:29| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 简介
+                    <div id="content"><textarea style="display: none;">## 基础分析
 
-DepyDocs是一个由depy开发的，基于SaaS（软件即服务）模式的文档管理系统。用户可以通过订阅服务来使用平台进行文档的创建、编辑、管理和分享。
+通过断点、全局搜索等一些方式我们可以找到与授权有关的jar包是LNParse.jar，验证授权有关的逻辑都在里面，于是我们可以用jd-gui来反编译jar包分析。
 
-## 功能列表&更新日志
+## 代码分析
 
-1、基础文档编辑（支持Markdown与富文本）
-2、非登陆态下文档审批授权
-3、文档版本管理、回滚、差异比较
-4、文档的导出与导入
-5、OpenAPI
-6、丰富的额外配置
+只能够一步步慢慢看了。首先，我们可以找到主要的类lnparse
 
-详情查看DepyDocs服务的更新日志，[点击](https://docs.rce.ink/view/?view_id=88)
+![](https://img.meituan.net/imgupload/ed7f7786856d9e2fc547cb9f07ccb27312979.png)
 
-## 本站注册
+我们可以看到他使用了 Zip.getZipSomeByte方法
 
-考虑到安全性尚未验证完全，且部分功能耦合程度较高，故暂未开放租户自注册。
+![](https://img.meituan.net/imgupload/40bdcecdecfdf097959d4cff89f30cfc7717.png)
 
-目前仅通过邀请的方式进行租户注册与测试，如有需要请留言评论。
+后面找到zip类，定位到这个方法
 
-目前本站已定向邀请12位同学进行功能测试，效果良好。
+![](https://img.meituan.net/imgupload/881888bb34e3fd5f9a07ed272b53d18923365.png)
+
+他的作用实际上就是通过getEntries 得到解压zip文件得到一个对象。
+
+然后判断对象中存在的元素，也就是类似于文件列表，当zipArchiveEntry的名字匹配到方法输入的keyPath，则以字节数组形式返回文件输入流。
+
+所以上面的代码就是检测压缩包的文件（license、publickey、lek、license2），并以二进制数组保存在变量中。
 
 
-## 私有部署
+![](https://img.meituan.net/imgupload/9263dd802ec1c3fa24d341c45c5ba9a228841.png)
 
-支持企业等进行私有化部署，数据完全存储本地，部署简单快速，同时会支持更多企业级的功能。
 
-如有需要请联系我。
+这里做了if判断，很显然是对*微版本做了判断。每一个版本的realpublickey都不一样，通过授权时候赋予的版本来赋值。
 
-## 参考&使用
+![](https://img.meituan.net/imgupload/b885c76a7d0f76292a6f3cc92f6a89735349.png)
 
-本平台开发借鉴了许多优秀的前后端框架，此处无法一一列举，衷心表达感谢。
+这里对publicKey做了base64编码，并和realPublicKey做比较。如果不一致将会抛出异常，显示授权失败。
 
-后续会逐一收集，统一展示。
+所以我们需要新建一个文件，然后将realpublickey的base解码保存在文件中，命名为publicKey。
 
-## 联系我
+![](https://img.meituan.net/imgupload/90a1b87c5568ed31f39509b98551c1ff7797.png)
 
-Mail: i[At]rce.ink </textarea></div>
+之后进入了一个尝试，并在之前定义了一个jsonobject。licenseEncryptKey文件中提取的内容，使用publickey做rsa解密。保存在licenseKey变量中，之后在使用licenseKey对licenseFile做des解密，把json数据存储到jsonlicense中。
+
+我们可以分析得到，licenseKey在这里就是一个密钥的作用。也就是说licenseEncryptKey文件保存的是一个用realPublicKey对应私钥加密的key。
+
+至此我们可以整理得到以下信息：
+
+1.licenseEncryptKey放的是jar文件中公钥对应的私钥，再加密一串字符串的后的数据。
+
+2.publicKey放的是realpublickey的base64解码的内容文件。
+
+
+![](https://img.meituan.net/imgupload/d18feb52c6e3020ac189d8c2bfaadc327356.png)
+
+
+如果解密失败抛出异常，就用key作为密钥去解密license2文件中的内容，此时直接得到了json数据。
+
+![](https://img.meituan.net/imgupload/906431a31fa1023d19c98c3395bf2a9412098.png)
+
+之后建立了一个lnb对象，通过json数据取值拿到内容赋值。
+
+之后进入checkLicesne方法，带入lnb对象，通过对象方法取值
+
+![](https://img.meituan.net/imgupload/56f4d4b18aad078959fdd452fb24f36212068.png)
+
+用一个md5对象 对companyname，licensecode等参数进行md5加密，再与lnb对象中的license对象进行比较，且必须相等。
+
+## 分析
+
+1.licenseEncryptKey放的是jar文件中公钥对应的私钥加密一串字符串的后的数据，相当于的des解密密钥的加密内容。
+
+2.publicKey放的是realpublickey的base64解码的内容文件。
+
+3.license文件中存放着json数据，但是数据经过了des加密
+
+4.license2只有捕获了异常才必要，可以不需要
+
+5.json格式中需要的键:companyname【公司名】、hrmnum【系统最大使用人数】、concurrentflag、licensecode【机器码】、expiredate【使用有效期】、license【MD5，来源于上图中的src加密方式】、cid、scType、scCount。
+
+我们可以清楚的知道，由于我们没有默认jar文件中公钥对应的私钥，所以在rsa解密的时候会失败，因为不匹配。
+
+## 破解思路
+
+1.修改jar包的公钥为自己的公钥（本地存储对应私钥），重新打包
+
+2.设置公司名、机器码、使用人数、有效期等键（key），再根据这些值生成md5（value）写入license键中，保存成一个json字符串
+
+3.设置des密钥为depy，对json数据进行加密
+
+4.加密数据存入license文件中
+
+5.使用覆盖后的公钥对应的私钥对depy进行加密，存储在licenseEncryptKey文件中
+
+6.将修改后的公钥存储在publicKey文件中
+
+7.由于会存在文件解压
+
+![](https://img.meituan.net/imgupload/2a94aa7922d818c2196554bfcd5cfb4f20644.png)
+
+虽然做了异常捕获，但是尽量写一个空白的license2，由于在第一步的try就返回完毕了json数据，它不会对我们授权产生影响。
+
+8.覆盖ljstln.jar文件，重启xx系统，将四个文件压缩成zip文件，再改成名字为.license结尾的文件即可（授权界面的文件上传类型限制）
+
+## 效果如下
+
+![](https://img.meituan.net/imgupload/58d0083b87b398ddec039daf9392342947048.png)
+
+![](https://img.meituan.net/imgupload/51ae4c1833d05daee30e4d76322e7876453303.png)
+
+![](https://img.meituan.net/imgupload/bb1c8737ab9aef82a9f8747ef9382309387784.png)
+
+
+
+*注意:本文仅作安全有关的代码分析尝试，请支持正版，抵制非法破解。本人不会提供任何非法授权服务，请知悉。*</textarea></div>
 
 
                 <script>
