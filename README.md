@@ -4,9 +4,63 @@ DepyDocs是由depy自研的文档管理平台。本站内容由Un1kAPI静态化�
 
 ## 静态化时间
 
-2024-02-06 01:36:03
+2024-02-06 01:48:44
 
 ## 目录树
+
+#### 逆向分析
+
+ - ⚙️ 【Xposed 改机】- 基础环境安装
+
+ - 💻 安卓内联汇编开发
+
+ - 📑 JNI 使用基础
+
+ - 📑 IDA Debugger 调试器使用
+
+ - 💻 std::string内存布局
+
+ - 💼 Frida作业-20231114
+
+ - 🧮 JSVMP执行流程分析
+
+#### DepyDocs
+
+ - 📑 DepyDocs
+
+ - 📑  Un1kMsg使用
+
+ - 📑 联系方式
+
+ - 📑 额外配置
+
+ - 📑  更新日志
+
+ - 📑 时光机使用
+
+ - 📑 DepyOauth接入指南
+
+ - 📑 官方域名申请
+
+ - 📑 租户自定义域名绑定
+
+#### 博客文章（备份）
+
+ - 某安全工具逆向破解
+
+ - 浙江省第四届网络与信息安全竞赛决赛WP
+
+ - 流量加密编程开发
+
+ - Attack PHP Website By Shiro
+
+ - 某OA授权破解分析
+
+ - Un1kHacking
+
+ - Un1kLog4shellScan 
+
+ - Netty 开发Mitm解决请求响应匹配问题	
 
 #### Todo
 
@@ -57,58 +111,6 @@ DepyDocs是由depy自研的文档管理平台。本站内容由Un1kAPI静态化�
  - 📑【NDK开发】NDK采集、压缩、加密传输设备信息
 
  - 📑【NDK开发】基础环境搭建
-
-#### 逆向分析
-
- - ⚙️ 【Xposed 改机】- 基础环境安装
-
- - 💻 安卓内联汇编开发
-
- - 📑 JNI 使用基础
-
- - 📑 IDA Debugger 调试器使用
-
- - 💻 std::string内存布局
-
- - 💼 Frida作业-20231114
-
- - 🧮 JSVMP执行流程分析
-
-#### DepyDocs
-
- - 📑 DepyDocs
-
- - 📑  Un1kMsg使用
-
- - 📑 联系方式
-
- - 📑 额外配置
-
- - 📑  更新日志
-
- - 📑 时光机使用
-
- - 📑 DepyOauth接入指南
-
- - 📑 官方域名申请
-
- - 📑 租户自定义域名绑定
-
-#### 博客文章（备份）
-
- - 浙江省第四届网络与信息安全竞赛决赛WP
-
- - 流量加密编程开发
-
- - Attack PHP Website By Shiro
-
- - 某OA授权破解分析
-
- - Un1kHacking
-
- - Un1kLog4shellScan 
-
- - Netty 开发Mitm解决请求响应匹配问题	
 
 
 

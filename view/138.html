@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑【前端开发】lightbox&#43;pjax最佳实践</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>某安全工具逆向破解</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -134,110 +134,140 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>📑【前端开发】lightbox+pjax最佳实践</h1>
+                <h1>某安全工具逆向破解</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2023-11-18 00:22:25| 目录:编程开发 </a>
+                | 时间: 2024-02-06 01:48:43| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 前言
+                    <div id="content"><textarea style="display: none;">本文仅供个人学习记录,请支持官方正版软件。
 
-给docs模板做优化的时候考虑到了局部刷新的功能，这样能够让网站响应速度更快。于是引入了jquery-pjax这个框架，使用方法也很简单。
+## 静态分析
 
-后面给图片做处理的时候发现这样的问题，图片PC上显示的还行，但是手机端由于被css进行百分比缩放导致看不清，需要用lightbox这样的方法去放大图片。
+载入x**y.exe，以windows64位x**y为例
 
-但是两个方法一起用的时候发生jquery的冲突，我本来就不是一个前端很厉害的人，也不想花时间在这上面去解决dom使用冲突的问题。所以干脆就换了个方案，使用非jquery的pjax前端框架。
+![](https://img.meituan.net/imgupload/ac9bfdc001b142a0e3823653b7ddeeb5161397.png)
 
+定位到证书校验有关function
 
-## 最佳实践
+![](https://img.meituan.net/imgupload/606f3efc2543cff7a221d9f2c043fc18149821.png)
 
-### PJAX引入
+发现有个关键跳转jz（图片里已经是修改过的了），jnz和jz在汇编指令中 jz=0 则跳转指定func 。
 
-引入pjax文件
-```
-&lt;script src=&#34;https://rce.ink/theme/docs/js/pjax.min.js&#34;&gt;&lt;/script&gt;
-```
-pjax实现：
-
-```javascript
-$(function() {
-        var pjax = new Pjax({
-          selectors: [
-            &#34;title&#34;,
-            &#34;meta[name=description]&#34;,
-            &#34;.the-header&#34;,
-            &#34;.the-content&#34;,
-            &#34;.the-sidebar&#34;,
-            &#34;#article&#34;,
-          ]
-        })
-        $(document).on(&#34;pjax:send&#34;, function() {
-            $(&#34;#article&#34;).hide();
-            $(&#34;#article&#34;).fadeTo(200,0.0);
-        });
-        $(document).on(&#34;pjax:complete&#34;, function() {
-            init();
-            $(&#34;#article&#34;).fadeTo(300,1);
-            $(&#34;#article&#34;).show();
-            anchorContent();
-            makeimg();
-        });
-});
-```
-
-SELECTORS中写需要局部刷新的dom元素，两个方法分别设置加载的效果和重载js方法。
-
-备份一下jquery-pjax的方法：
+相当于
 
 ```
-// $(function() {
-//     $(document).pjax(&#34;a[target!=_blank]&#34;, &#34;#article&#34;, {fragment:&#34;#article&#34;, timeout:6000});
-//         $(document).on(&#34;pjax:send&#34;, function() {
-//             $(&#34;#article&#34;).hide();
-//             $(&#34;#article&#34;).fadeTo(200,0.0);
-//         });
-//         $(document).on(&#34;pjax:complete&#34;, function() {
-//             init();
-//             $(&#34;#article&#34;).fadeTo(300,1);
-//             $(&#34;#article&#34;).show();
-//             anchorContent();
-//         });
-// });
-```
-### LightBox引入
+if(jz =0){
 
-```text
-&lt;script src=&#34;https://rce.ink/theme/docs/js/lightbox-plus-jquery.min.js&#34;&gt; &lt;/script&gt;
- &lt;link href=&#34;https://rce.ink/theme/docs/css/lightbox.css?v=123&#34; rel=&#34;stylesheet&#34;&gt;
-```
+//跳转指定模块
 
-jquery方法：
-
-```javascript
-function makeimg(){
-    
-    var articleElement = document.getElementById(&#39;article&#39;);
-    var imgTags = articleElement.getElementsByTagName(&#39;img&#39;);
-        for (var i = 0; i &lt; imgTags.length; i&#43;&#43;) {
-          var imgTag = imgTags[i];
-          var aTag = document.createElement(&#39;a&#39;);
-          aTag.className = &#39;example-image-link&#39;;
-          aTag.href = imgTag.src;
-          aTag.setAttribute(&#39;data-lightbox&#39;, &#39;example-set&#39;);
-          var newImgTag = document.createElement(&#39;img&#39;);
-          newImgTag.src = imgTag.src;
-          aTag.appendChild(newImgTag);
-          imgTag.parentNode.replaceChild(aTag, imgTag);
-        }
 }
 ```
-只需要修改article为你文章内容的id即可，然后记得在pjax中配置回调函数makeimg()在complete后调用即可。
+jnz正好与jz相反 我们可以大致猜测xray的认证逻辑,license内容解密，合法性校验、完整性校验、有效性校验。
+```
+if(通过，此人为正版用户){
 
-本站完美解决此问题</textarea></div>
+ //跳转使用
+
+}
+```
+如果我们把jz改成jnz 那就是
+
+```
+if(不通过，此人为盗版用户){
+
+ //跳转使用
+
+}
+```
+
+所以我们只需要把jz改成jnz即可 操作如下
+
+设置-&gt;常规 显示机器码
+
+![](https://img.meituan.net/imgupload/d8a7b73f7e49ccb99aaca9ecedafad04110083.png)
+
+编辑-&gt;修补程序-&gt;单字节修补
+
+![](https://img.meituan.net/imgupload/0e7171dc99754d5834f4890a93cc69e353384.png)
+
+本来是84 改成85即可
+
+修改完毕后 编辑-&gt;修补程序-&gt;修补程序到应用即可
+
+效果如下
+
+![](https://img.meituan.net/imgupload/dbacc0371a6b45913b320ae58e04919f726606.png)
+
+## 动态调试
+
+既然静态代码已经破解成功了，试试看能不能动态调试破解。
+
+因为od只能调试32位程序 我们下载一个386的x**y 并载入od
+
+![](https://img.meituan.net/imgupload/2edf4fec7eb2c77ed5b26ac9833c3d06167002.png)
+
+一开始使用读入内容断点和打开文件断点 都无法debug。 直到后面才发现是用图中所指向函数来获取注册时间
+
+![](https://img.meituan.net/imgupload/7205b791ad57f94db50a5339050802c2261628.png)
+
+在下个时间 断点那个函数
+
+![](https://img.meituan.net/imgupload/949318c911c7e179ae3ae28da09b72f7206921.png)
+
+发现再跑一次就跑飞了
+
+所以我们得单步调试 一直按f8
+
+![](https://img.meituan.net/imgupload/38e8b67c97f8b92bcda59ea5a048ca0e259435.png)
+
+一直在这个位置 发现是读取证书有效时间 我们可以加个断点防止跑飞
+
+![](https://img.meituan.net/imgupload/fd351b34ab4c48d4f4c2edee3241a51a25810.png)
+
+之后重复同样操作
+
+![](https://img.meituan.net/imgupload/e0a7bfefc7addf04c223d2093924843e83285.png)
+
+一直到这个地方发现显示证书过期了
+
+![](https://img.meituan.net/imgupload/de29c8fda0f684afac863f51b0751a6f89782.png)
+
+之后发现程序退出了
+
+![](https://img.meituan.net/imgupload/71cd5434caccaba1b486ecc831ebac3b125706.png)
+
+直接ctrl&#43;F2重新运行 不断调试 这个位置再打一个断点
+
+![](https://img.meituan.net/imgupload/1fbc419695dc70c3c2779102a075e870124747.png)
+
+发现在这里有两个关键的call 一直在此断点处都没有出现过期的显示 在下面的call打一个断点
+
+![](https://img.meituan.net/imgupload/2125ee61d95f9c3d3ff45379045d4105119254.png)
+
+在第二个call下就退出了程序  我们把这个call给nop掉试试
+
+![](https://img.meituan.net/imgupload/f2461dc1b339a989eb72bd069c6f817386996.png)
+
+发现成功出现了授权成功界面
+
+![](https://img.meituan.net/imgupload/8c7eee43e10214710dd12871cb68d85f276180.png)
+
+但是第一行还是提示授权过期 但是至少能用了
+
+![](https://img.meituan.net/imgupload/415ef87c57927317436292353c9c85fc67058.png)
+
+运行效果
+
+![](https://img.meituan.net/imgupload/769ecfd88d36018f5159bea1d460a61f40420.png)
+
+![](https://img.meituan.net/imgupload/d711baf3cf5480159ec48733a0413c1a46047.png)
+
+(图上方法均已失效，未测试最新版本，仅提供学习思路)</textarea></div>
 
 
                 <script>
