@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑【NDK开发】基础环境搭建</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>流量加密编程开发</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -132,112 +132,165 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>📑【NDK开发】基础环境搭建</h1>
+                <h1>流量加密编程开发</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2023-11-08 15:53:56| 目录:编程开发 </a>
+                | 时间: 2024-02-06 01:26:04| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 环境安装
+                    <div id="content"><textarea style="display: none;">## 前言
 
-官网Android Studio一把梭，务必使用非中国大陆代理后下载dl.google.com上的一些依赖，不然你会痛苦。
+现在国网、移动的小程序、app基本都对流量请求进行了加密。这很大程序上让渗透测试和漏洞挖掘的工作变得异常困难。根据一些挖洞经历，基本上都是通过前端的公钥进行数据加密，为了更好的去挖掘漏洞，花费几小时时间，让Un1kPoc客户端实现了RSA的流量加密传输。
 
-## 前置知识
+## 前期准备
 
-此前研究过webview和java层进行通信的方式，在美团这个叫做knb。与之类似更底层的就是JNI，NDK工具使咱们能够在 Android 应用中使用 C 和 C&#43;&#43; 代码，它提供了众多平台库，我们可使用这些平台库管理原生 activity 和访问实体设备组件，例如传感器和触控输入。
+简单的来梳理一下我们的业务流程：
 
-为了应用的安全性，会将一些复杂的逻辑和算法通过本地代码（C或C&#43;&#43;）来实现，然后打包成.so动态库文件，并提供 Java 接口供应用层调用，这么做的目的主要就是为了提供应用的安全性，防止被反编译后被不法分子分析应用的逻辑。
+1.前端获取公钥（publickey）
 
+2.对请求json数据用公钥加密
 
-## 基础文件目录
+3.传递给后端
 
-### Cmake.list
+4.私钥解密
 
-![](https://p0.meituan.net/xianfu/4776ecd2dda9446aa1f21fbc397efca465724.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+5.常规的后期业务逻辑
 
-第一行指定所需的 CMake 最低版本。
-第二行设置项目名称为 &#34;a****&#34;。
-第三行添加一个名为 ${CMAKE_PROJECT_NAME} 的共享库，并将源文件 native-lib.cpp 和 native_depy.cpp 添加到该库中。这些源文件将被编译为共享库。
-第四行指定链接到 ${CMAKE_PROJECT_NAME} 库的其他库。在这里，${CMAKE_PROJECT_NAME} 库将链接到 Android NDK 提供的 android 库和 log 库。这样编译生成的libaa会引用包含android和log两个库。
+所以我们需要做的首先是准备一个配套的公私钥。
 
-### com/example/a2023110803/MainActivity.java
+```
+openssl genrsa -out pri.pem 1024  //生成私钥
+openssl rsa -in pri.pem -pubout -out pub.pem //根据私钥生成公钥
+```
+ js有个库，叫jsencrypt.min.js，大致参考了一下教程，最简单的写法如下
 
-```java
-package com.example.a2023110803;
-import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-import android.widget.TextView;
-import com.example.a2023110803.databinding.ActivityMainBinding;
-
-
-public class MainActivity extends AppCompatActivity {
-
-    static {
-        System.loadLibrary(&#34;aa&#34;);
-    }
-
-    private ActivityMainBinding binding;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        TextView tv = binding.sampleText;
-        tv.setText(xxjni());
-    }
-
-    public native String xxjni();
-
-    public native String testJNI();
-}
+```
+var rsa = new RSAKey(); //建立一个rsa对象
+rsa.setPublic(modulus, exponent);
+var modulus = &#34;***&#34;; //生成私钥的模量 命令为 openssl rsa -in pri.pem -noout -modulu
+var exponent = &#34;10001&#34;; //设置e 
+var res = rsa.encrypt(&#34;加密内容&#34;); 
+console.log(res)
 ```
 
-代码中定义两个native函数，xxjni()和testjni()。我们可以通过jni调用这两个方法。
-在onCreate的最后两行，我们调用了xxjni()方法，并通过TextView的setText方法把返回值设置在屏幕上。
+这里是坑点之一，本来产生加密内容非常的正常顺利。加密内容为123，123456a，测试一下，这些都没问题。直到我部署到了生产的接口时，出现了问题。
 
-### native_depy.cpp
+![](https://img.meituan.net/imgupload/a460825ca472b57c54d92e4c2ca4c66620565.png)
 
-在cmake.list中我们定义了一个共享库，会把native_depy.cpp和另一个cpp文件添加到库中。java代码最终调用时，也是调用cpp里定义的函数。
+参考了一下STACKOVERFLOW，才知道rsa加密不了长数据。而我的请求包的body是很长的，它会根据漏洞poc改变长度，我也无法确定。
 
-代码如下：
+解决方法：
 
-```cpp
-#include &lt;jni.h&gt;
-#include &lt;string&gt;
-
-extern &#34;C&#34; jstring
-Java_com_example_a2023110803_MainActivity_xxjni(JNIEnv *env,jobject) {
-    std::string hello = &#34;a222nother&#34;;
-    return env-&gt;NewStringUTF(hello.c_str());
-}
+```
+JSEncrypt.prototype.encryptLong2 = function(string) {
+	var k = this.getKey();
+	try {
+		var lt = &#34;&#34;;
+		var ct = &#34;&#34;;
+		//RSA每次加密117bytes，需要辅助方法判断字符串截取位置    
+		//1.获取字符串截取点    
+		var bytes = new Array();
+		bytes.push(0);
+		var byteNo = 0;
+		var len, c;
+		len = string.length;
+		var temp = 0;
+		for (var i = 0; i &lt; len; i&#43;&#43;) {
+			c = string.charCodeAt(i);
+			if (c &gt;= 0x010000 && c &lt;= 0x10FFFF) {
+				byteNo &#43;= 4;
+			} else if (c &gt;= 0x000800 && c &lt;= 0x00FFFF) {
+				byteNo &#43;= 3;
+			} else if (c &gt;= 0x000080 && c &lt;= 0x0007FF) {
+				byteNo &#43;= 2;
+			} else {
+				byteNo &#43;= 1;
+			}
+			if ((byteNo % 117) &gt;= 114 || (byteNo % 117) == 0) {
+				if (byteNo - temp &gt;= 114) {
+					bytes.push(i);
+					temp = byteNo;
+				}
+			}
+		}
+		//2.截取字符串并分段加密    
+		if (bytes.length &gt; 1) {
+			for (var i = 0; i &lt; bytes.length - 1; i&#43;&#43;) {
+				var str;
+				if (i == 0) {
+					str = string.substring(0, bytes[i &#43; 1] &#43; 1);
+				} else {
+					str = string.substring(bytes[i] &#43; 1, bytes[i &#43; 1] &#43; 1);
+				}
+				var t1 = k.encrypt(str);
+				ct &#43;= t1;
+			};
+			if (bytes[bytes.length - 1] != string.length - 1) {
+				var lastStr = string.substring(bytes[bytes.length - 1] &#43; 1);
+				ct &#43;= k.encrypt(lastStr);
+			}
+			return hexToBytes(ct);
+		}
+		var t = k.encrypt(string);
+		var y = hexToBytes(t);
+		return y;
+	} catch(ex) {
+		return false;
+	}
+};
 ```
 
-在这个声明函数的代码中，使用了 extern &#34;C&#34; 关键字。这是因为 C&#43;&#43; 支持函数重载，而 Java 不支持函数重载。为了能够在 C&#43;&#43; 中定义一个可以被 Java 调用的函数，需要使用 extern &#34;C&#34; 来告诉编译器按照 C 语言的规则进行函数命名和调用约定。
+方法大致意思就是，加密的字符超过了一定长度，就以117为单位进行分段加密。
 
-通过jstring这个JNI 中的数据类型，表示一个 Java 字符串。
+之前后端的解密代码，我用的是php，因为很简单，他解密的字段类型是十六进制字符串
 
-函数声明做了静态绑定，需要java&#43;包名&#43;函数名的方式，同时默认带有两个参数。JNIEnv 是一个指向 JNI 环境的指针，jobject 是一个代表调用该函数的 Java 对象的指针。方便c&#43;&#43;从java层调用方法或者获取数据。
+```
+$encrypt_data = pack(&#34;H*&#34;, $hex_encrypt_data);
+```
 
-std::string hello = &#34;a222nother&#34;;: 在 C&#43;&#43; 中创建一个字符串变量 hello，并赋值为 &#34;a222nother&#34;。
-return env-&gt;NewStringUTF(hello.c_str());: 使用 JNI 环境的 NewStringUTF 函数将 C&#43;&#43; 字符串转换为 Java 字符串，并返回给 Java 端。
+我们可控的是hex_encrypt_data，但是我们的字节数组是无法传入的。于是只能前端写的方法，把字节数组转换成十六进制的字符串。
 
-## 编译测试
+```
+function hexToBytes(hex) {
+	for (var bytes = [], c = 0; c &lt; hex.length; c &#43;= 2) bytes.push(parseInt(hex.substr(c, 2), 16));
+	return bytes;
+}
+function bytesToHex(bytes) {
+	for (var hex = [], i = 0; i &lt; bytes.length; i&#43;&#43;) {
+		hex.push((bytes[i] &gt;&gt;&gt; 4).toString(16));
+		hex.push((bytes[i] & 0xF).toString(16));
+	}
+	return hex.join(&#34;&#34;);
+}
+```
+我们对提交的poc进行rsa加密，把内容打印出来，通过上面两个方法，成功产生了长字符串产生的rsa加密后的字符串。于是前端的任务已经完成了，我们把注释删掉，直接进行解密。
 
-![](https://p0.meituan.net/xianfu/6a2529dfbdd601580b3ed35b34997c2269860.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+```
+ openssl_private_decrypt($encrypt_data, $decrypt_data, $private_key);
+```
 
-设置过滤，只编译arm64。（删除会编译多个平台libso，但是目前够用）
-点击build-&gt;rebuild project ，在outputs -&gt;debug目录下得到一个apk。
+这样$decrypt_data中就保存了我们的解密内容，但是测试发现结果是空的，又懵逼了。看了点资料，发现rsa对解密也有长度限制。
 
-![](https://p0.meituan.net/xianfu/97dc161e82cff23a5690622ebfe8b121114047.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+![](https://img.meituan.net/imgupload/1c985790088a02e5f6eb6e48198e396514437.png)
 
-解压后就能看到编译好的so文件了。</textarea></div>
+那我就知道怎么写了，对chunks变量做128切割。然后分段解密。
+
+```
+foreach ($chunks as $chunk) {
+    openssl_private_decrypt($chunk, $decrypt_data, $private_key);   
+    // echo &#34;$decrypt_data&#34;;
+    $data .= $decrypt_data;
+}
+echo $data;
+```
+重新测试成功
+
+## 效果
+![](https://img.meituan.net/imgupload/371254a1bb392c4f17791d25d679e8d5200418.png)</textarea></div>
 
 
                 <script>
