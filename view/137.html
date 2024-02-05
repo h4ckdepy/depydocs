@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Un1kLog4shellScan </title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>浙江省第四届网络与信息安全竞赛决赛WP</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -133,84 +133,51 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>Un1kLog4shellScan </h1>
+                <h1>浙江省第四届网络与信息安全竞赛决赛WP</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2024-02-05 22:51:12| 目录:博客文章（备份） </a>
+                | 时间: 2024-02-06 01:29:42| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 原理
+                    <div id="content"><textarea style="display: none;">大学毕业这年和实验室的小伙伴们拿了全省第五，纪念一下~
 
-Burpsuite插件中提供对请求包的拦截接口，也就是IHttpListener。我们通过接口捕获所有模块经过的请求包、拷贝请求字节、污染所有可疑参数、调用助手函数中的发包功能后重新发送请求。这样就不会污染原来的请求包，也能够进行深度探测。
+![](https://img.meituan.net/imgupload/56c6ed76ecd5531196fe6cceee1a1a89624501.png)
 
-首先获取请求包的各类参数，例如content-type。这代表我们要怎么样去污染我们的请求参数，污染的数据可以从配置文件中获取当然也可以从api。
+![](https://img.meituan.net/imgupload/60b36a02309365eef985f95d7e0cc329374831.png)
 
-我这边把配置相关信息保存在远端api中，这样可以动态的配置白名单、污染payload以及webhook配置。同时还能够采集各类污染的请求包，拿到污染时候的请求包体。
+![](https://img.meituan.net/imgupload/a32d5509c861541ecb8a42fa4408aca5265126.png)
 
-由于Mitm截获的请求包会非常多，同时发包会非常卡顿，所以可以在服务端过滤和使用消息队列。插入恶意payload会导致客户端ip被ban，所以我们可以配置代理池，让插件使用代理池中的ip资源进行请求。
+![](https://img.meituan.net/imgupload/052b4fc63003a1afe341396af2ecc6a3247691.png)
 
-后续可以拓展项目，变成对请求包的sql注入探测、fastjson漏洞探测、越权漏洞探测等，这里不再展开。
+![](https://img.meituan.net/imgupload/d6c2be3c77d39a158512738f5d8f9ce7542394.png)
 
-[配置过重,项目已下架,目前也有更好的探测工具了,文章仅作项目留档:D]
+![](https://img.meituan.net/imgupload/51225cb04cb33b81e478d2136b1068a4855676.png)
 
-## 介绍
+![](https://img.meituan.net/imgupload/13c4db3c59832af650291ba1eb6639af385937.png)
 
-Un1kLog4shellScan是基于 BurpSuite 插件 JavaAPI 开发的log4shell漏洞被动扫描的辅助型插件。
+![](https://img.meituan.net/imgupload/bd6f0e9248ca1ea2afb92aff9c398a7f418199.png)
 
-设计本插件的想法是因为在某些攻防演练时,由于需要测试过多漏洞以及需要花费时间在资产收集、口令爆破、代码审计、漏洞利用上,忽视了log4shell的漏洞探测。
+![](https://img.meituan.net/imgupload/b3e26c990caddf7a42f15b8e82bc36b7362879.png)
 
-对每一个请求包进行漏洞探测是不现实的,这需要花费大量的时间,并且网上的插件功能比较单一,基本就是无脑插payload。
+![](https://img.meituan.net/imgupload/c08e59e2099e6ed91a95e7f6cf0c54b8307541.png)
 
-插件通过污染报文中的参数值,被动进行log4shell漏洞探测,已经实现了对CONTENT_TYPE_URL_ENCODED 、CONTENT_TYPE_JSON与CONTENT_TYPE_NONE的数据格式的参数污染,避免因繁琐的渗透测试遗漏对此漏洞的探测挖掘。
+![](https://img.meituan.net/imgupload/c0beee904e849b018b406cd9b8e4db5a314718.png)
 
-同时插件对接本地(或者远程)的api接口,可以实时记录污染报文以及相应场景情况,并可以通过配置设置被动扫描白名单与功能使用范围。插件也可以配置一些参数来控制测试速率与测试payload。
+![](https://img.meituan.net/imgupload/c603a2424ed402ddddbd91050bd605fc247587.png)
 
-如果使用的是自启动的流量探测服务脚本(server.py),您还可以接入webhook实时告警。
+![](https://img.meituan.net/imgupload/7558e29a10b9f18fbd4b9e1b6047bf6f221788.png)
 
-## 安装
+![](https://img.meituan.net/imgupload/eb8cfa03c81a857781af6627d607d9ce183376.png)
 
-1.下载插件jar包文件,或者自行编译源代码。
+![](https://img.meituan.net/imgupload/a12ae5b81a50feaf268a4914618b84b1200124.png)
 
-2.插件装载: Extender - Extensions - Add - Select File - Next
+![](https://img.meituan.net/imgupload/2911053dd4c998aad363105177d7ab34196412.png)
 
-3.流量捕获服务端使用nohup或者screen等后台运行方式运行 server.py脚本即可,请提前装好相应依赖。
-
-特点
-
-1、全参数污染,被动扫描,不会遗漏任何一个请求包的测试参数。
-2、配套web后台管理,方便更新管理。可通过api实现对插件的热加载,与配置切换。
-3、对接Webhook流量补获服务端,可以实时补捉可疑的漏洞场景。
-
-![](https://img.meituan.net/imgupload/85ec539ca2942423e8ed96b03c0a1f8c701086.png)
-
-![](https://img.meituan.net/imgupload/846fd5bbac0a8335f441712819446409235210.png)
-
-## 实战效果图
-
-1.发现漏洞后 webhook通知
-
-![](https://img.meituan.net/imgupload/052d51835f449f80f3776766cd406f09499118.png)
-
-
-2.设置白名单域名 防止无脑乱插
-
-![](https://img.meituan.net/imgupload/a1322a948846778781003e71a96c27ed122619.png)
-
-3.记录请求详情 用于控制测试间隔、观察污染报文
-
-![](https://img.meituan.net/imgupload/846fd5bbac0a8335f441712819446409235210.png)
-
-4.控制台输出
-
-![](https://img.meituan.net/imgupload/dd0c428f32d1544550db6ca37b76ace1188142.png)
-
-5.污染报文查看
-
-![](https://img.meituan.net/imgupload/4c90c10c509ca6e80c9d01c656f67334140781.png)</textarea></div>
+![](https://img.meituan.net/imgupload/1c071f8ee7e2edc8915e5b9276d85570226832.png)</textarea></div>
 
 
                 <script>
