@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>小年</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Netty 开发Mitm解决请求响应匹配问题	</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -127,21 +127,66 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>小年</h1>
+                <h1>Netty 开发Mitm解决请求响应匹配问题	</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2024-02-03 21:10:42| 目录:随笔 </a>
+                | 时间: 2024-02-05 22:44:16| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">就要过来美团之后的第一个新年了。又浏览了一下之前写的文章，偶发的契机下和解了一些朋友，我由衷的感到高兴。
+                    <div id="content"><textarea style="display: none;">## 前言
 
-现在变得越来越不敏感了，似乎不太在乎别人怎么对待我，更清楚自己想做什么想要什么。
+最近着迷开发Mitm工具,希望能够实现对安卓系统的一键系统级证书注入、流量劫持以及插件化的请求响应处理，从而更好的提效。
 
-挺好的，希望新的一年工作更努力点，产出更多一些，工资也会更多一些吧哈哈哈。</textarea></div>
+由于Un1kAndroid前期由JavaFx开发，于是最终选择了Netty作为我的网络编程框架。开发过程就不说了，只需要对Netty有基础的认识以及会使用API即可。
+
+由于netty的I/O操作都是异步的，所以在开发过程中，我遇到了无法匹配上代理的请求响应流量的问题，看了很多文章都没有写清楚怎么解决这个问题，可能使用的场景不太一样，最终是通过本文的方法解决的，希望能够提供一些帮助。
+
+## ChannelFuture
+
+在Netty中所有的I/O操作都是异步的，这意味着任何的I/O调用都将立即返回，而不保证这些被请求的I/O操作在调用结束的时候已经完成。
+
+取而代之地，你会得到一个返回的ChannelFuture实例，这个实例将给你一些关于I/O操作结果或者状态的信息。
+
+## Test
+
+所以我们需要去研究一下，设置channelFuture监听器时的一些参数变量，代码会出现在差不多这个位置：
+
+`this.httpsRequestCf.addListener( (ChannelFutureListener)(future) -&gt;`
+
+在代码下面加一行：
+
+`System.out.println(&#34;写入响应的ChannelID:&#34;&#43;future.channel().id());`
+
+并且观察HttpProxyResponseHandler这个handler的channelRead方法被触发时候的channel_id：
+
+![](https://img.meituan.net/imgupload/259f60292ae2f44fcfa36c6d8a5b6d38390345.png)
+
+开启代理转发流量到端口，日志如下：
+
+![](https://img.meituan.net/imgupload/29399bb2121020b2c882ee275b9b7c01344187.png)
+
+通过对几个写入响应的channel_id做查找，发现都是一一匹配的，响应并不会共用channel_id。由此我们就有了思路：
+
+1、https的流量代理下，握手结束后要写入clientrequest到server，创建channelFuture时获取id，把请求包以及相关参数创建类，并把类加到全局的list对象列表里
+
+2、响应触发获取当前的channel_id,找到list对象列表中属性id为此id的对象，对对象的response属性做字符串追加的操作（https响应是分段read），一直到响应结束。
+
+最终我们可以在全局的MitmFlow的List里观察到所有被捕获的流量请求包，以及对应的响应channel_id
+
+![](https://img.meituan.net/imgupload/5ee5381845dffc84c456a677628992d1168483.png)
+
+![](https://img.meituan.net/imgupload/4443c8c8096c421255d922f87e173488390259.png)
+
+
+## 放个工具图
+
+![](https://img.meituan.net/imgupload/12fd9b95e5bb7b13041049d776f1df93709320.png)
+
+感谢CFC4N、Lilac给我的一些帮助。</textarea></div>
 
 
                 <script>
