@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Un1kHacking</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>Attack PHP Website By Shiro</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -131,202 +131,119 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>Un1kHacking</h1>
+                <h1>Attack PHP Website By Shiro</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2024-02-05 23:01:06| 目录:博客文章（备份） </a>
+                | 时间: 2024-02-06 01:18:57| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 前言
+                    <div id="content"><textarea style="display: none;">## 背景
 
-一款为了快速接入云函数代理测试的插件。本文也可给burpsuite开发初学者提供从0到1的开发步骤。
+1、如何让php网站收到shiro探测的请求后让工具或脚本认为这是一个具有shiro框架的网站？
 
-## 设计思路
+2、如何收到密钥爆破检测请求的时候，通过请求的字段值来与后端密钥做匹配,更加逼真的还原密钥爆破的场景，从而让脚本小子信以为真？
 
-由于目前存在的一些云函数代理工具仅仅是做了流量转发,也就是访问网站的时候一股脑儿的把流量全部通过你的vps再转发到你的云函数接口去，以达到通过使用云函数的cdn代理池从而防止被攻击溯源。这样的操作是可行的，但是实际运用是存在许多缺点的。
+## 框架指纹
 
-首先在链路上，流量-&gt;vps-&gt;云函数，需要通过两层中转，第二是云函数或者是vps的性能、带宽不足，导致访问百度这种速度较快的网站都会加载全部资源导致卡死。所以我们可以简化一下，抽取其中的部分功能给repeater用即可。
+shiro框架常见的指纹是通过对请求包设置cookie中一个值，为RememberMe=xxx，返回包会出现相应的Set-Cookie: rememberMe=deleteMe。
 
-## 编写代码
+这里我拿j1anfen的shiro测试工具来测试。通过检测原理，我们可以自己给网站base文件或者中间件写这样的代码：
 
-1.阅读官方SDK与文档
+![](https://img.meituan.net/imgupload/7414952b582b05ca1c449c66609cfafe59267.png)
 
-2.了解需求
+php用$_COOKIE函数取值会使&#43;号变成空格,这里通过headers遍历重新取值可以解决这个问题。于是我们用工具探测一下：
 
-需要在repeater模块，发送http请求的时候，使用插件发送流量给云函数接口处理，最后返回信息到response即可。而判断在哪个模块，burpsuite api给了通用方法，并且模块可以根据toolflag来判定使用。所以我们需要用到一个监听http请求的模块。
+![](https://img.meituan.net/imgupload/7a59f7f23ae15149689553438b431bab117710.png)
 
-也就是IHttpListener，使用该接口前，需要先通过 IBurpExtenderCallbacks.registerHttpListener() 注册一个 HTTP 监听器，这样所有的HTTP请求和响应都会通知这个监听器，就可以在这个监听器对HTTP数据包进行分析或修改了。
+发现已经可以让大多数工具认为我的网站是shiro框架了。
 
-代码如下:
+## 密钥爆破原理
 
-![](https://img.meituan.net/imgupload/09142d683795358326fdeeafc6da4c08164656.png)
+1、能否实现，使用php网站后台指定一个密钥,当攻击者爆破密钥的时候必须和我php后台配置的密钥一致，才设置相应的检测回显呢？
 
-需要注意的是，在最前面需要接口继承IHttpListener：
+参考 l1nk3r发表于雷神众测的文章：
 
-![](https://img.meituan.net/imgupload/b25e2fa843a95b4d381449fe66efdbfd12595.png)
+![](https://img.meituan.net/imgupload/819b6be69001ee584ab79522c471a059771258.png)
 
-该接口只提供了一个方法,processHttpMessage。这个方法拥有三个属性：
+构造一个继承 PrincipalCollection 的序列化对象，key正确情况下不返回 deleteMe ，key错误情况下返回 deleteMe 的方式来判断key是否正确。
 
-![](https://img.meituan.net/imgupload/886ec66a4a6db0cdd50149e2d16a142523865.png)
+那么，当服务器取cookie取到一个由密钥kPH&#43;bIxk5D2deZiIxcaaaA==加密而来的字符串，服务器后端配置的密钥也是kPH&#43;bIxk5D2deZiIxcaaaA==，服务器应该怎么做呢？
 
-通过toolflag属性,判断是否为repeater模块 在repeater才生效,代码就可以写
+首先，老版本的shiro是aes-cbc加密，padding是Pkcs7。上面key探测的方法用到了反序列化，那么解密出来的数据一定会存在反序列化的特征aced0005。
 
-```
- if(toolFlag == 0x00000040) {
-   // To do here
-}
-```
+所以可以给后台写一下php对于aes-cbc-pkcs7的解密，因为cbc模式下是有偏移量的，但我们并没有偏移量，但iv只和最后一个分组有关，只要明文大于一组，这就不会影响我们的特征。
 
-这样第一个要求就轻松解决了,接着就是后面的操作,转发流量到云函数服务接口,并且取消原始请求。这里是开发的最大坑点,这个方法自带一个接口IHttpRequestResponse。我们需要使用这个接口去改变请求和设置响应,他的方法如下:
+## 代码逻辑
 
-![](https://img.meituan.net/imgupload/08d3173a72366d0302f7602a528ea7051030645.png)
+1、php网站收到请求cookie的rememberMe字段值
 
-所以我们一开始需要使用setRequest方法去修改请求,代码如下
+2、后台存在一个假定的key，并使用aes-cbc解密，如果密钥匹配正确，那么解密出来的hex字符串的32-40位的字符串应该是aced0005
 
-![](https://img.meituan.net/imgupload/1d75955c3a30e7d755f20b453363f89177920.png)
+3、如果解密出来的数据是aced0005,那么我们就不设置deleteme的头部字段。
 
-虽然请求是被修改了,测试blog.happysec.cn域名下,不管repeater模块的request是什么代码,请求包都是bytes中的请求包，效果是会发送一个get请求/scf.php?body=，从而无视你的包体。
+4、其他情况下如果存在rememberme的请求cookie，就设置。
 
-但是测试其他域名就出现问题了,由于setrequest只是修改了request中的报文,但是该请求包的service中的host、port、Protocol，还是原来的a.com,http,8081。当serive中的host与请求包中的host不一致的时候，会发生无法访问的情况。所以我把注意力放在了，setHttpService这个方法上面。如果我们用这个方法,把host、port、protocol改成我们的云函数相关信息，那么就可以解决我们这个问题。但由于HttpService是一个接口，不是对象，需要通过做一个接口实现：
+![](https://img.meituan.net/imgupload/f4e4b60715fa8a0e794525bfd6b9cdc963499.png)
 
-```
-class WSHttpService implements IHttpService
-```
+解密脚本如下
 
-让WSHttpService类实现接口IHttpService中所有的方法,之后定义三个属性,并重载getHost,getPort,getProtocol方法。
+![](https://img.meituan.net/imgupload/63dd9fc2d9d594ed05605a73c1f65c3d106259.png)
 
-      private String host;
-        private int port;
-        private String protocol;
+最终效果如下
 
-        WSHttpService() {
-            host = &#34;blog.happysec.cn&#34;;
-            protocol = &#34;https&#34;;
-            port = 443;
-        }
+![](https://img.meituan.net/imgupload/1196206554fd94e780d0a3a3da00316d130506.png)
 
-        @Override
-        public String getHost() {
-            return host;
-        }
+![](https://img.meituan.net/imgupload/2d825b9c9bda739a1cadb0eba0e33cb9179723.png)
 
-        @Override
-        public int getPort() {
-            return port;
-        }
+## 工具检测效果
 
-        @Override
-        public String getProtocol() {
-            return protocol;
-        }
+![](https://img.meituan.net/imgupload/416b1c369209247535ddd6e84e4b4a6e250323.png)
 
-在类实例化构造函数中,将三个参数默认定义为云函数的接口地址、端口、协议。之后我们实例化一个类WSHttpService，并用setService方法重新设置messageInfo的service信息。
+如果还有其他的伪造，其实可以用伪静态设置后缀为jsp,亦或者修改phpsession，改成jsessionid。
 
-代码如下:
+![](https://img.meituan.net/imgupload/1479940940534c3f6f913658e6d9218321271.png)
 
-            WSHttpService iHttpService = new WSHttpService();
-            messageInfo.setHttpService(iHttpService);
-            IHttpService iHttpService2 = messageInfo.getHttpService();
-            this.stdout.println(iHttpService.getHost());
-            this.stdout.println(iHttpService.getPort());
-            this.stdout.println(iHttpService.getProtocol());
-			
-重新打包插件后我们访问网站测试
+## 进阶
 
-![](https://img.meituan.net/imgupload/57fbe29c0a713e0022f07d0f348b0e35201624.png)
+前文我们已经实现了让php网站拥有被shiro扫描器探测的特征。以及模拟一个虚假密钥给漏洞测试工具识别出来的结果。这使得攻击者会对一个非java网站实现漏洞的前两步探测结果，浪费攻击者时间。
 
-发现无论请求包设置的host为啥，都走的是WSHttpService类下的host、port、Protocol。
+![](https://img.meituan.net/imgupload/621a15cc8c14ecfaa02f88c9b656711f29870.png)
 
-解决了这个问题，其他的也就是写云函数接口、打包原始请求headers、发送请求包至云函数接口的简单代码即可了。
+但是到这里就无法做下去了，原因就是一般的工具爆破shiro密钥，都是使用l1nk3r的探测方法，但是当到爆破利用链的时候就不一样了。
 
-3.打包原始请求代码编写
+feihong的shiro探测工具，发送的内容通过字节码反编译的代码如下：
 
-我们需要把原始http请求报文打包发送给云函数接口,通过
-```
-String body =(helpers.bytesToString(messageInfo.getRequest())); //获取请求数据
-```
-这行代码我们可以获取字符串类型的原始请求数据,也就是
+![](https://img.meituan.net/imgupload/56899b236dda5581b14362941925502d69928.png)
 
-![](https://img.meituan.net/imgupload/4bdded238603a17f8f306413304c831439714.png)
+而j1anfen的工具的代码如下：
 
-这个框里的内容
+![](https://img.meituan.net/imgupload/13ddb4fe1f5be5af6d20d3e3e095aa06195852.png)
 
-为了防止编码错误,我们使用base64对string做编码
+第一种是发送流量到特征平台，如果能够收到流量代表这个链子可以打通。
 
-                try {
-                    base64encodedString = Base64.getEncoder().encodeToString(body.getBytes(&#34;utf-8&#34;));
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-				
-接着我们只需要 重新修改原始请求即可
+第二种是获取请求包的特定header参数值，服务器接收这个参数值后，给响应包加一个这个参数以及值。如果相应包存在，说明可以执行代码，漏洞链和方式可用。
 
-![](https://img.meituan.net/imgupload/e12cd2b7fb52a8b902b5e56bb78dc86254197.png)
+针对第一种情况，我们可以解密payload，匹配获取到dnslog平台，由我们服务器平台发送流量，使得工具认为代码被执行，所以链子可用。此时对一般的红队人员的正反馈极高，可能会继续探测尝试。
 
-所以这样能够理解了，前面修改service的目的只是为了防止host不一致导致请求无法传递而已。
+第二种方法，就比较难了，因为设定的参数值是不一样的。比如j1anfen的工具为techo，而改版的工具用的是添加host。而且我们还得知道代码的检测逻辑，是返回包有这个参数，并且值相同呢，还是只要存在这个值就可以呢？
 
-然后我们修改body后的参数为我们需要传递的base64代码即可
+我们可以反编译看一下工具的代码，发现这个方法定义了检测逻辑。需要header一致。为：f25a2fc72690b780b2a14e140ef6a9e0
 
-4.云函数代码编写
+![](https://img.meituan.net/imgupload/1a4f27370339dcc352954097b222e20450127.png)
 
-此时burp插件已经编写完毕了。
+## 总结
 
-接下来就是云函数对请求包的处理。处理原始请求包提取里面的body、host、uri、method、content-type等重要参数，使用云函数重新请求即可。
+我们需要理解，我们不需要配合所有的链子都产生效果。只需要挑选工具的一个切面即可，这也就是为什么我们只做简单的aes-cbc的shiro版本伪造，而不去兼容高版。目的是尽可能适配大众的攻击方式，干扰红队人员正常的渗透测试活动。
 
-这里需要注意的是,由于请求和响应都会被这个监听器捕获,所以我们需要设置条件
+此时我们针对常用的两个工具的攻击链伪造已经写完了，第一种方法就是匹配到dnslog地址，或者任意url，我们都用php模拟发送一个请求。
 
-![](https://img.meituan.net/imgupload/db13c8f0f8561c8041cce85420077bed10421.png)
+第二个，像j1anfen这样的工具，尽可能收集特征。根据payload去设置响应header头。
 
-默认对获取响应不做处理即可。
-
-我通过
-
-    String body = (helpers.bytesToString(messageInfo.getRequest())); //获取请求数据包
-再将body进行base64编码，这样就可以发包给云函数接口原请求的http报文。做接口的话选择很多，我这里选择php代码来写。
-
-首先，对原请求重新发包，拿的是http报文。就需要使用socket来write，再重新发包。
-
-这里的坑点也很多，一开始我用的是fsockopen这个函数，但是后面遇到证书错误的问题，于是改用stream_socket_client，并在上下文stream_context_create创建了一个ssl，把verify_peer_name和verify_peer都设置成false，这样就可以忽略证书文件校验了。但是发现上传文件的时候会上传错误，某些接口网站访问空白，并且不是云函数的问题，是代码的问题。
-
-在write的时候发生了什么不可预见错误，我通过反复diff请求包也没有找到问题，接口收到的请求包和原始请求包怎么看都是一个请求包,于是我放弃了这个思路,只能做报文解析了。然后用curl去发包，analyzeRequest给了几个好用的方法，geturl和getHeaders，这样我们可以快速获取url和头部信息，但是需要注意这里的headers的第一个元素是类似**POST /api HTTP/1.1**的一行，method也可以用getmethod获取,uri在url里,所以我们可以把headers这个list的第一个元素remove,然后都编码base64发给接口。
-
-至此，headers、url、method的问题都可以解决,接下来就是解决body中的文件内容或者请求参数的获取了。对于analyzeRequest，burpsuite api没有给出拿到body内容的接口。但是给了获取body的偏移量getbodyoffset。所以我们可以用以下代码获得请求body：
-
-```
-String sendData = body.substring(reqInfo.getBodyOffset());
-```
-
-也就是把请求包从偏移量开始的地方截取全部，就是body的内容了。后面拿到值然后用curl_setopt即可，就不多写了,效果如下（解决了蛋疼的编码问题）
-
-![](https://img.meituan.net/imgupload/6bb75f136a1b66668cef7debdc48fb0a241970.png)
-
-![](https://img.meituan.net/imgupload/70af487760c506f002c328ac42e49e41215767.png)
-
-实际使用还是存在很多需要提升的地方,比如云函数接口是硬编码的,不是动态可变的。导入配置我倒是思考过,但是发现需要绘制ui和使用另外的加载器,比较麻烦,还不如在burpsuite的文件夹下做一个ini的默认载入,不存在就提示用什么命令加载。
-
-mac效果如下：
-
-
-![](https://img.meituan.net/imgupload/d0049def9bce0f4ce5d362b9d35c7046170536.png)
-![](https://img.meituan.net/imgupload/84741625f697f03a85b51c4fbd0ce49a673829.png)
-
-之后写一个菜单 做监听 假设我修改了配置文件中的接口 那么点击就会重载
-
-![](https://img.meituan.net/imgupload/1e5e2c60bd0681572d51c610a1bb5327512587.png)
-
-![](https://img.meituan.net/imgupload/68514ac3537e0d3ccea810149434031d174769.png)
-
-对接口代码作修改 在响应内容中加入使用的api host 便于区分
-
-![](https://img.meituan.net/imgupload/d52e08d492154acb03bce642e33eb837475595.png)
-
-![](https://img.meituan.net/imgupload/9f8b764c089c14ec6e725fa17f77669b231627.png)
-
-基本上这样就可以投入使用啦～</textarea></div>
+综上，希望能对乙方厂商的蜜罐开发起到一定的思路帮助。</textarea></div>
 
 
                 <script>
