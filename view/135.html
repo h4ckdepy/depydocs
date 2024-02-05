@@ -55,18 +55,6 @@
             <ul>
             <li>
 
- <p>DepyDocs</p>
-    <ul>
-<li><a href="/view/122.html">📑 DepyDocs</a></li>
-<li><a href="/view/120.html">📑  Un1kMsg使用</a></li>
-<li><a href="/view/114.html">📑 联系方式</a></li>
-<li><a href="/view/91.html">📑 额外配置</a></li>
-<li><a href="/view/88.html">📑  更新日志</a></li>
-<li><a href="/view/72.html">📑 时光机使用</a></li>
-<li><a href="/view/66.html">📑 DepyOauth接入指南</a></li>
-<li><a href="/view/62.html">📑 官方域名申请</a></li>
-<li><a href="/view/47.html">📑 租户自定义域名绑定</a></li>
-    </ul>
  <p>博客文章（备份）</p>
     <ul>
 <li><a href="/view/137.html">浙江省第四届网络与信息安全竞赛决赛WP</a></li>
@@ -121,6 +109,18 @@
 <li><a href="/view/74.html">💻 std::string内存布局</a></li>
 <li><a href="/view/73.html">💼 Frida作业-20231114</a></li>
 <li><a href="/view/65.html">🧮 JSVMP执行流程分析</a></li>
+    </ul>
+ <p>DepyDocs</p>
+    <ul>
+<li><a href="/view/122.html">📑 DepyDocs</a></li>
+<li><a href="/view/120.html">📑  Un1kMsg使用</a></li>
+<li><a href="/view/114.html">📑 联系方式</a></li>
+<li><a href="/view/91.html">📑 额外配置</a></li>
+<li><a href="/view/88.html">📑  更新日志</a></li>
+<li><a href="/view/72.html">📑 时光机使用</a></li>
+<li><a href="/view/66.html">📑 DepyOauth接入指南</a></li>
+<li><a href="/view/62.html">📑 官方域名申请</a></li>
+<li><a href="/view/47.html">📑 租户自定义域名绑定</a></li>
     </ul>
 
 
@@ -231,21 +231,28 @@ feihong的shiro探测工具，发送的内容通过字节码反编译的代码�
 
 针对第一种情况，我们可以解密payload，匹配获取到dnslog平台，由我们服务器平台发送流量，使得工具认为代码被执行，所以链子可用。此时对一般的红队人员的正反馈极高，可能会继续探测尝试。
 
-第二种方法，就比较难了，因为设定的参数值是不一样的。比如j1anfen的工具为techo，而改版的工具用的是添加host。而且我们还得知道代码的检测逻辑，是返回包有这个参数，并且值相同呢，还是只要存在这个值就可以呢？
+第二种方法，因为设定的参数值是不一样的。比如j1anfen的工具为techo，而summersec的工具为host。而且我们还得知道代码的检测逻辑，是返回包有这个参数，并且值相同呢，还是只要存在这个值就可以呢？
 
-我们可以反编译看一下工具的代码，发现这个方法定义了检测逻辑。需要header一致。为：f25a2fc72690b780b2a14e140ef6a9e0
+我们可以反编译看一下两款工具的代码，发现j1anfen这个方法定义了检测逻辑。需要header一致。为：f25a2fc72690b780b2a14e140ef6a9e0
 
 ![](https://img.meituan.net/imgupload/1a4f27370339dcc352954097b222e20450127.png)
 
+summersec的是需要存在host：
+
+![](https://img.meituan.net/imgupload/bcf6e36e448b752096327ffabf8a9b8754759.png)
+
+
 ## 总结
 
-我们需要理解，我们不需要配合所有的链子都产生效果。只需要挑选工具的一个切面即可，这也就是为什么我们只做简单的aes-cbc的shiro版本伪造，而不去兼容高版。目的是尽可能适配大众的攻击方式，干扰红队人员正常的渗透测试活动。
+我们需要理解，我们不需要配合所有的链子都产生效果。只需要挑选工具的一个切面即可，这也就是为什么我们只做简单的aes-cbc的shiro版本伪造，而不去兼容高版。
+
+目的是尽可能适配大众的攻击方式，找到最短路径，干扰红队人员正常的渗透测试活动。
 
 此时我们针对常用的两个工具的攻击链伪造已经写完了，第一种方法就是匹配到dnslog地址，或者任意url，我们都用php模拟发送一个请求。
 
-第二个，像j1anfen这样的工具，尽可能收集特征。根据payload去设置响应header头。
+第二个，像j1anfen、summersec这样的工具，尽可能收集特征。根据payload去设置响应header头。
 
-综上，希望能对乙方厂商的蜜罐开发起到一定的思路帮助。</textarea></div>
+综上，希望能对乙方厂商的蜜罐开发起到一定的帮助。</textarea></div>
 
 
                 <script>
