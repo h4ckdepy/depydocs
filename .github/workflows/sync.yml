@@ -3,9 +3,12 @@ name: Sync Private Repository Every 5 Minutes
 on:
   #手动触发
   workflow_dispatch:
-  schedule:
-    # * is a special character in YAML so you have to quote this string
-    - cron:  '*/5 * * * *'
+  repository_dispatch:
+    types:
+      - webhook-1
+  # schedule:
+  #   # * is a special character in YAML so you have to quote this string
+  #   - cron:  '*/5 * * * *'
 jobs:
   sync-private-repo:
     runs-on: ubuntu-latest
