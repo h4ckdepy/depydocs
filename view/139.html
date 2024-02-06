@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>⚙️ 【Xposed 改机】- 基础环境安装</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>猿人学APP第二题  - 算法分析</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -135,49 +135,167 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>⚙️ 【Xposed 改机】- 基础环境安装</h1>
+                <h1>猿人学APP第二题  - 算法分析</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2023-12-04 11:21:35| 目录:逆向分析 </a>
+                | 时间: 2024-02-06 22:13:44| 目录:逆向分析 </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 新建Project
+                    <div id="content"><textarea style="display: none;">## 背景
 
-添加依赖
-![](https://img.meituan.net/imgupload/5a64cf1094927d6b011abcacc4ed8bb791637.png)
+样本sign值的产生算法。
+
+## 静态分析
+
+找到静态绑定的函数
+
+`Java_com_yuanrenxue_match2022_fragment_challenge_ChallengeTwoFragment_sign`
+
+![](https://img.meituan.net/imgupload/e643706141f0a53952316c6c0cf561cd146939.png)
+
+入参进入sub_AE0(v4, &v7);
 
 ```
-    compileOnly &#39;de.robv.android.xposed:api:82&#39;
+padLength = strlen(a1);                       // 获取入参长度
+  v5 = (int8x16_t *)malloc((int)padLength &#43; 16);// 开辟长度&#43;16的空间
+  v6 = v5;
+  if ( padLength )                              // 存在v4
+    memcpy(v5, a1, padLength);                  // 把入参拷贝至v5
+  if ( (padLength & 0xF) != 16 )                // 对16取余，是否有值，有值就开始填充
+  {
+    memset((char *)v6 &#43; padLength, 16 - (padLength & 0xF), 16 - (padLength & 0xF));// PKCS7 填充
+    padLength = padLength - (padLength & 0xF) &#43; 16;// 填充后长度
+  }
 ```
+函数以16为单位进行分组，然后根据余数进行填充，填充方式 PKCS#7。
 
-添加加速源
-![](https://img.meituan.net/imgupload/7c512aa1137cc0befff52d093adb3b1a72535.png)
+填充完毕进入一个循环逻辑，用到了aes的sbox。
 
-sync文件同步后即可
+```
+  if ( padLength )
+  {
+    count1 = 0LL;
+    v8 = 0;
+    message = (char *)v6;
+    do
+    {
+      for ( i = 0LL; i != 16; &#43;&#43;i )
+      {
+        v8 = *((_BYTE *)&v27 &#43; i) ^ byte_E73[(unsigned __int8)(message[i] ^ v8)];
+        *((_BYTE *)&v27 &#43; i) = v8;
+      }
+      v11 = count1&#43;&#43; == (unsigned __int64)(padLength - 1) &gt;&gt; 4;
+      message &#43;= 16;
+    }
+    while ( !v11 );                             // 分组大循环
+    v12 = v27;
+    v13 = v28;
+    v14 = BYTE1(v28);
+    v15 = BYTE2(v28);
+    v16 = BYTE3(v28);
+  }
+```
+总结方法：
+1、v8进行循环变化，不断影响v27中的值
+2、v27的值最终只和最后一个分组的值&#43;当时的v8有关
 
-## 新建类
+根据伪代码写出python代码：
 
-![](https://img.meituan.net/imgupload/05ab9d5484675ddb2d2559c88886ba5193534.png)
+```python
+from Crypto.Util.Padding import pad
+from Crypto.Cipher import AES
+import binascii
 
-![](https://img.meituan.net/imgupload/e64bf54979368b5b1069d69a8321a34e51806.png)
 
-lsposed查看插件是否加载
+def apply_pkcs7_padding(input_string, block_size=16):
+    # Ensure the input is in bytes
+    if isinstance(input_string, str):
+        input_string = input_string.encode(&#39;utf-8&#39;)
 
-![](https://img.meituan.net/imgupload/fba20c5e605df81cf9bf2820263865f21109566.png)
+    # Apply PKCS#7 padding
+    padded_data = pad(input_string, block_size, style=&#39;pkcs7&#39;)
 
-发现日志打了，说明我们的代码生效了。（日志我特意改了一下）
+    return padded_data
 
-## 修改图标与名字
 
-AndroidManifest.xml
+# Example usage
+input_string = &#34;1:17070096491:17070096491:1707009649&#34;
+block_size = 16  # Block size for AES (128 bits)
+padded_string = apply_pkcs7_padding(input_string, block_size)
 
-![](https://img.meituan.net/imgupload/396cad810aebecb13a67119b063092fc216521.png)
+# Convert to a hex representation for display purposes
+padded_hex = binascii.hexlify(padded_string)
 
-</textarea></div>
+byte_E73 = [
+    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
+    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
+    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
+    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
+    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
+    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
+    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
+    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
+    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
+    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
+    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
+    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
+    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
+    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
+    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
+    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
+]
+
+paddingLength = len(padded_string);
+count1 = 0
+v8 = 0
+v27 = [0] * 16
+message_index = 0
+while True:
+    for i in range(16):
+        v8 = v27[i] ^ byte_E73[padded_string[message_index&#43;i] ^ v8]
+        v27[i] = v8
+    message_index &#43;= 16
+    v11 = count1 == (paddingLength - 1) &gt;&gt; 4
+    print(v11)
+    count1 &#43;= 1
+    if v11:
+        break
+hex_string = &#39;&#39;.join(format(byte, &#39;02X&#39;) for byte in v27)
+```
+入参：1:17070096491:17070096491:1707009649
+结果：C6E5B898303AD28762F97DAB99E2389C
+
+## 如何验证
+
+用unidbg进行断点调试，模拟执行。
+
+![](https://img.meituan.net/imgupload/c23dab6e1f8fdc75a671549895f37c66111228.png)
+
+v27在这个位置赋值给v12，看一下指令：
+
+![](https://img.meituan.net/imgupload/14c3b417e7a1717e26e631a248d8c36f77331.png)
+
+0xbbc这个位置做了ldr操作，赋值给d0寄存器。
+
+unidbg添加代码：
+
+```
+        emulator.attach().addBreakPoint(module.base&#43;0xbbc);
+        emulator.traceCode(module.base,module.base&#43;module.size);
+```
+在这个偏移位置进行断点，并打印tracecode。
+
+![](https://img.meituan.net/imgupload/59cb092ac89f8a6b38dfac7b1ede081e50015.png)
+
+在这个位置取值ldr，m0xbffff668查看他的值。
+
+![](https://img.meituan.net/imgupload/1dd80ddabd16e01c827e0db755c2350633640.png)
+
+发现hex一致。说明上面的算法没问题。</textarea></div>
 
 
                 <script>
