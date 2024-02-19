@@ -22,7 +22,7 @@
 
 
     <script src="https://file.depy.ink/theme/docs/js/lightbox-plus-jquery.min.js"> </script>
-    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>猿人学APP第二题  - 算法分析</title>
+    <link href="https://file.depy.ink/theme/docs/css/lightbox.css?v=3328" rel="stylesheet"><title>某样本算法分析</title>
 </head>
 
 <body class="bg-light ready sticky" id="watermark">
@@ -55,27 +55,6 @@
             <ul>
             <li>
 
- <p>Todo</p>
-    <ul>
-<li><a href="/view/118.html">Todo List</a></li>
-    </ul>
- <p>随笔</p>
-    <ul>
-<li><a href="/view/128.html">小年</a></li>
-<li><a href="/view/109.html">❤ 2023</a></li>
-    </ul>
- <p>测试笔记</p>
-    <ul>
-<li><a href="/view/129.html">😡 关于DDOS我能做什么</a></li>
-<li><a href="/view/123.html">🐑 某加密样本 Trace分析 - 2</a></li>
-<li><a href="/view/121.html">🐑 某加密样本 Trace分析</a></li>
-<li><a href="/view/115.html">🔧 轻量级CI/CD+文件内容监控/防篡改解决方案</a></li>
-<li><a href="/view/105.html">🍯 有用的命令备份</a></li>
-<li><a href="/view/94.html">😊 Gateway-woker实现热重载</a></li>
-<li><a href="/view/90.html">✍️ Xposed运行原理</a></li>
-<li><a href="/view/89.html">AutoJS 模拟贝塞尔曲线视频滑动</a></li>
-<li><a href="/view/84.html">📱 小米13绕过SIM卡打开USB安装</a></li>
-    </ul>
  <p>读书笔记</p>
     <ul>
 <li><a href="/view/119.html">📚 注入与HOOK</a></li>
@@ -92,7 +71,7 @@
     </ul>
  <p>逆向分析</p>
     <ul>
-<li><a href="/view/139.html">猿人学APP第二题  - 算法分析</a></li>
+<li><a href="/view/139.html">某样本算法分析</a></li>
 <li><a href="/view/86.html">⚙️ 【Xposed 改机】- 基础环境安装</a></li>
 <li><a href="/view/81.html">💻 安卓内联汇编开发</a></li>
 <li><a href="/view/76.html">📑 JNI 使用基础</a></li>
@@ -124,6 +103,27 @@
 <li><a href="/view/132.html">Un1kLog4shellScan </a></li>
 <li><a href="/view/131.html">Netty 开发Mitm解决请求响应匹配问题	</a></li>
     </ul>
+ <p>Todo</p>
+    <ul>
+<li><a href="/view/118.html">Todo List</a></li>
+    </ul>
+ <p>随笔</p>
+    <ul>
+<li><a href="/view/128.html">小年</a></li>
+<li><a href="/view/109.html">❤ 2023</a></li>
+    </ul>
+ <p>测试笔记</p>
+    <ul>
+<li><a href="/view/129.html">😡 关于DDOS我能做什么</a></li>
+<li><a href="/view/123.html">🐑 某加密样本 Trace分析 - 2</a></li>
+<li><a href="/view/121.html">🐑 某加密样本 Trace分析</a></li>
+<li><a href="/view/115.html">🔧 轻量级CI/CD+文件内容监控/防篡改解决方案</a></li>
+<li><a href="/view/105.html">🍯 有用的命令备份</a></li>
+<li><a href="/view/94.html">😊 Gateway-woker实现热重载</a></li>
+<li><a href="/view/90.html">✍️ Xposed运行原理</a></li>
+<li><a href="/view/89.html">AutoJS 模拟贝塞尔曲线视频滑动</a></li>
+<li><a href="/view/84.html">📱 小米13绕过SIM卡打开USB安装</a></li>
+    </ul>
 
 
 </li>
@@ -135,7 +135,7 @@
 
             <article class="markdown-section" id="main" style="word-break:break-all;">
                 <div>
-                <h1>猿人学APP第二题  - 算法分析</h1>
+                <h1>某样本算法分析</h1>
 
 
                 <a style="font-size:12px;color: #5f5d5d;">
@@ -329,6 +329,19 @@ unidbg添加代码：
 
 ![](https://img.meituan.net/imgupload/954e51cbb077b798cb1fc6cfa46245b9217799.png)
 
+查看内存布局：
+
+![](https://img.meituan.net/imgupload/50cb4e37b0901d9b37649c1bf0ed432127630.png)
+
+反复改变输入发现布局均为如下规律：
+
+明文输入&#43;pkcs#7填充&#43;校验hash（16字节）
+
+继续进入循环，首先做了分组长度计算：
+
+![](https://img.meituan.net/imgupload/f61f79680d1af21154650faa3106bc4e18106.png)
+
+padlength是之前的填充后的字节长度，想以16字节为一组向上取整，所以对padlength&#43;了15并做了右移四位的操作。由于前面计算存在hash校验位，所以再对结果&#43;了1。
 </textarea></div>
 
 
